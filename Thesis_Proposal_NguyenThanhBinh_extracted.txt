@@ -1,0 +1,95 @@
+UNIVERSITY OF INFORMATION TECHNOLOGY
+ADVANCED PROGRAM
+IN INFORMATION SYSTEMS
+THESIS PROPOSAL
+THESIS TITLE:  Building an E-learning System Integrated with an AI Chatbot to Support English Learning for Secondary School Students.
+Advisor: Ph.D Cao Thị Nhạn
+Duration: From 26/01/2026 to 30/05/2026
+Students: Nguyễn Thanh Bình – 20521118
+Introduction: This thesis presents the design and implementation of an E-learning system aimed at supporting English learning for lower secondary school students. The proposed system is designed to provide essential learning functionalities, including user management for students and teachers, structured course content organized by proficiency levels, learning progress tracking and access to digital learning materials. These core functions are intended to support both guided learning in school settings and self-directed learning outside the classroom.
+In the context of Vietnam, where English is a compulsory subject but learners’ proficiency levels vary significantly, many lower secondary students face difficulties in accessing personalized learning support. Traditional classroom instruction often struggles to address individual learning gaps, while external tutoring may not be equally accessible to all students. Therefore, an E-learning system that offers flexible access to learning materials and adaptive support is expected to help students review lessons, practice at their own pace and develop greater learner autonomy.
+Building upon this foundation, the system integrates an AI-powered chatbot using the Retrieval-Augmented Generation (RAG) approach to further enhance learning support. Instead of retraining large language models, the chatbot retrieves relevant materials from a curated knowledge base to generate contextualized responses. By grounding answers in external educational documents, the system is expected to reduce hallucination and improve response reliability. The chatbot is designed to support curriculum-related questions, indicate missing knowledge and provide personalized learning assistance based on students’ proficiency levels.
+Literature Review:
+AI Chatbots in Education: Previous research indicates that educational chatbots can improve learner engagement and provide immediate feedback, but their effectiveness depends on content reliability and instructional design [1], [3].
+Retrieval-Augmented Generation (RAG): RAG has been proposed as an effective method to enhance factual accuracy in text generation by grounding language models in external knowledge sources, significantly reducing hallucination [2], [4].
+Intelligent E-learning Systems: Modern E-learning platforms increasingly integrate AI techniques to support personalized learning and self-directed study, particularly in language education contexts [3], [5].
+Related Work And Data Source:
+Related Work:
+Unleashing the Potential of Chatbots in Education: This paper provides a comprehensive overview of the roles of chatbots in education, highlighting their potential to support learning, increase learner engagement and deliver immediate feedback. It also emphasizes that chatbot effectiveness strongly depends on content reliability and proper integration within E-learning systems [6].
+Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks: The study introduces Retrieval-Augmented Generation (RAG), a framework that combines document retrieval with text generation to improve the factual accuracy of language models. By grounding responses in external knowledge sources, RAG significantly reduces hallucination in knowledge-intensive tasks [2].
+Data Source: These materials are publicly available and used for academic and non-commercial purposes.
+Grammar Materials: British Council, OpenStax. 
+Vocabulary Materials: Oxford Wiktionary Data.
+Assignment Materials: ESLflow, ESL Lounge Student, Perfect English Grammar.
+Scope and Research Direction:
+For the Study Part:
+System focus: This study focuses on the design and implementation of a web-based E-learning system to support English learning for secondary school students. The system emphasizes core E-learning functionalities such as user management, structured course and lesson organization, formative assessment and learning progress tracking [1][2].
+Learning content scope: The learning content is limited to English grammar, core vocabulary and practice exercises appropriate for secondary learners. Materials are sourced from publicly available and open-access educational resources and are used strictly for academic and non-commercial purposes [2].
+Role of AI and chatbot: An AI-based chatbot is integrated as a supporting feature within the E-learning system, rather than the core component. Its primary role is to assist learners by answering curriculum-related questions and clarifying lesson content, in line with prior studies on educational chatbots [4].
+Use of Retrieval-Augmented Generation (RAG): The chatbot employs the Retrieval-Augmented Generation (RAG) approach to retrieve relevant learning materials from a curated knowledge base and generate grounded responses. The study does not involve training or fine-tuning large language models but instead applies retrieval-based grounding to improve response accuracy and reduce hallucination [5][6].
+Research and evaluation scope: The system is developed as an academic prototype to demonstrate feasibility. Evaluation is limited to functional testing and small-scale demonstrations. Large-scale classroom deployment, longitudinal learning analytics, commercial use and cross-subject expansion are outside the scope of this study [1][3].
+For the Application Part:
+The proposed E-learning system provides students with a centralized and flexible self-learning environment that supports independent study and personalized learning pathways. The web interface is designed to be simple, intuitive and efficient, enabling students to interact easily with the AI-powered learning support system and access educational resources without technical barriers [7].
+Students are required to create personal accounts to access the system. Through this interface, the system performs the following core functions:
+User Information Collection: Collects basic learner information such as name, age, learning level and academic performance (scores), forming an initial learner profile for personalization purposes.
+Course and Learning Data Management: Tracks course-related data, including learning progress, accessed learning materials, completed exercises and assessment results, allowing continuous monitoring of learners’ academic development.
+AI Chatbot Support: An AI-powered chatbot is integrated into the E-learning platform to support students in searching for learning knowledge, instructional materials and contextual examples related to course content. The chatbot enables learners to ask questions in natural language and retrieves relevant explanations, learning resources and illustrative examples from the system’s curated knowledge base, helping students clarify concepts and fill knowledge gaps effectively [1] 
+Backend Integration: The backend system is responsible for data processing and AI model execution, ensuring seamless communication between the web interface and AI components. It manages data storage, model inference and system logic to support real-time feedback delivery and scalable system performance. This backend architecture enables efficient handling of learner data and AI-driven responses, ensuring system stability and responsiveness under varying workloads.
+Security: To ensure data privacy and system reliability, the platform implements robust security mechanisms to protect user information. In particular, user passwords are secured using password hashing techniques before being stored in the database. Hashing transforms passwords into fixed-length, irreversible representations, preventing unauthorized access and minimizing the risk of credential exposure in the event of data breaches [9].
+Methodology: 
+System Architecture and Design: The proposed e-learning website is structured around four core modules: User Management, Learning Content, Learning Tracking and AI Assistant. The system is designed using modular architecture to ensure scalability and maintainability.
+User Management Module: This module is responsible for managing users and authentication within the system. It includes user registration, login, logout and basic user information management. 
+Learning Content Module: The Learning Content Module manages English learning materials and assessments. It consists of course management, lesson management and quiz management. Courses are organized by level and topic, lessons include vocabulary, grammar content and quizzes provide multiple-choice questions with automatic grading.
+Learning Tracking Module: This module tracks students’ learning progress and assessment results. It records completed lessons, quiz scores and overall learning status. Based on predefined rules, the module suggests learning paths such as reviewing previous lessons or proceeding to new topics. Learning path recommendations are generated based on learners’ progress, quiz results and predefined pedagogical rules.
+AI Assistant Module: The Chatbot Module acts as a learning assistant that interacts with students. It answers questions related to lessons and quizzes, provides explanations based on stored learning materials and supports learning path suggestions. The chatbot operates using rule-based logic and data retrieval. It does not require training a large language model from scratch but utilizes Retrieval-Augmented Generation (RAG) to combine information retrieval with controlled text generation.
+Technical Implementation: The platform is developed using modern web technologies to ensure a responsive and interactive user experience:
+Front-End: Built with HTML, CSS, JavaScript and NodeJS to create an intuitive interface.
+Back-End: NodeJS handles server-side logic and API integrations.
+Database: A combination of MySQL and MongoDB is used to manage structured course data and unstructured learner interactions. FAISS or Qdrant are employed as vector databases to store document embeddings and support semantic retrieval in the RAG pipeline.
+Chatbot: Rule-based or retrieval-based chatbot, with optional integration of existing chatbot APIs.
+Expected Results:
+Provide a structured and personalized English learning experience through well-organized learning content and level-based learning paths.
+Utilize an AI-powered chatbot based on the Retrieval-Augmented Generation (RAG) approach to recommend appropriate learning paths and provide contextual explanations.
+Support learners with timely feedback and learning guidance to improve understanding and learning continuity.
+Increase learner engagement by adapting learning content and chatbot interactions to learners’ proficiency levels and learning progress.
+References:
+[1] Hanh Dinh Thi My, Tu Le Tuan, Bao Nguyen Dinh, Sieu Nguyen Huu. AI-Integrated Personalized Learning for High School Students
+[2] Lewis, P., Perez, E., Piktus, A., Petroni, F. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. Advances in Neural Information Processing Systems (NeurIPS).
+[3] Holmes, W., Bialik, M., & Fadel, C. (2019). Artificial Intelligence in Education: Promises and Implications for Teaching and Learning. Center for Curriculum Redesign.
+[4] Gao, T., Fisch, A., & Chen, D. (2021). Making Pre-trained Language Models Better Few-shot Learners. Association for Computational Linguistics (ACL).
+[5] Al-Fraihat, D., Joy, M., Masa’deh, R., & Sinclair, J. (2020). Evaluating E-learning Systems Success: An Empirical Study. Computers in Human Behavior, Elsevier.
+[6] Winkler & Söllner (2018) - Unleashing the Potential of Chatbots in Education. 
+[7]  Nielsen, J. (1994). Usability Engineering. Morgan Kaufmann. https://www.nngroup.com/books/usability-engineering/
+[8] OWASP Foundation. (2023). Password Storage Cheat Sheet. https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+Research Timeline:
+Section
+Week
+Implementation Plan
+Data Research & Processing
+Weeks
+1 - 2
+Collect, analyze, clean and preprocess data to prepare datasets for system development and AI integration.
+UI/UX Design
+Weeks
+3 - 5
+Design user interface and user experience, including wireframes and basic prototypes for the e-learning platform.
+Backend Development
+Weeks
+6 - 8
+Develop backend services, APIs, database design and core system logic.
+Chatbot Development
+Weeks
+9 - 11
+Build and integrate the AI chatbot, including RAG-based retrieval and response generation.
+Testing & Optimization
+Week 12 - 13
+Perform system testing (functional, integration and performance testing) and optimize system performance.
+Documentation & Final Review
+Week 14
+Complete system documentation, finalize the project report and prepare for final presentation and evaluation.
+Approved by the advisor
+Signature of advisor
+Cao Thi Nhan
+Ho Chi Minh city, 04/02/2026
+Signatures of students
+Nguyen Thanh Binh           Tran Thai Thong
