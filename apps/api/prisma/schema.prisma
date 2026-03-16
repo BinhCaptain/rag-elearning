@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(STUDENT)
+  name         String?
+  avatar       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  quizAttempts QuizAttempt[]
+  progress     Progress[]
+
+  @@map("users")
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  level       String?
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  lessons     Lesson[]
+
+  @@map("courses")
+}
+
+model Lesson {
+  id        String   @id @default(uuid())
+  courseId  String   @map("course_id")
+  title     String
+  content   String?  @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  quizzes   Quiz[]
+  progress  Progress[]
+
+  @@index([courseId])
+  @@map("lessons")
+}
+
+model Quiz {
+  id       String   @id @default(uuid())
+  lessonId String   @map("lesson_id")
+  title    String
+
+  lesson   Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions Question[]
+  attempts  QuizAttempt[]
+
+  @@index([lessonId])
+  @@map("quizzes")
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  quizId      String   @map("quiz_id")
+  content     String   @db.Text
+  explanation String?  @db.Text
+
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options     Option[]
+
+  @@index([quizId])
+  @@map("questions")
+}
+
+model Option {
+  id         String   @id @default(uuid())
+  questionId String   @map("question_id")
+  content    String
+  isCorrect  Boolean  @default(false) @map("is_correct")
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("options")
+}
+
+model QuizAttempt {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  quizId         String   @map("quiz_id")
+  score          Int      @default(0)
+  totalQuestions Int      @default(0) @map("total_questions")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([quizId])
+  @@map("quiz_attempts")
+}
+
+enum ProgressStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Progress {
+  id          String         @id @default(uuid())
+  userId      String         @map("user_id")
+  lessonId    String         @map("lesson_id")
+  status      ProgressStatus @default(IN_PROGRESS)
+  completedAt DateTime?      @map("completed_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([lessonId])
+  @@map("progress")
+}
