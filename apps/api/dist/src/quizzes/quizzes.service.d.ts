@@ -8,64 +8,64 @@ export declare class QuizzesService {
             options: {
                 id: string;
                 content: string;
-                questionId: string;
                 isCorrect: boolean;
+                questionId: string;
             }[];
         } & {
             id: string;
-            quizId: string;
             content: string;
             explanation: string | null;
+            quizId: string;
         })[];
     } & {
         id: string;
-        lessonId: string;
         title: string;
+        lessonId: string;
     })[]>;
     findOne(id: string): Promise<{
         questions: ({
             options: {
                 id: string;
                 content: string;
-                questionId: string;
                 isCorrect: boolean;
+                questionId: string;
             }[];
         } & {
             id: string;
-            quizId: string;
             content: string;
             explanation: string | null;
+            quizId: string;
         })[];
     } & {
         id: string;
-        lessonId: string;
         title: string;
+        lessonId: string;
     }>;
     create(dto: CreateQuizDto): Promise<{
         questions: ({
             options: {
                 id: string;
                 content: string;
-                questionId: string;
                 isCorrect: boolean;
+                questionId: string;
             }[];
         } & {
             id: string;
-            quizId: string;
             content: string;
             explanation: string | null;
+            quizId: string;
         })[];
     } & {
         id: string;
-        lessonId: string;
         title: string;
+        lessonId: string;
     }>;
     submitAttempt(userId: string, quizId: string, dto: SubmitQuizDto): Promise<{
         id: string;
-        quizId: string;
+        createdAt: Date;
         score: number;
         totalQuestions: number;
-        createdAt: Date;
+        quizId: string;
         userId: string;
     }>;
 }

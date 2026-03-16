@@ -5,12 +5,12 @@ export declare class LessonsController {
     constructor(lessonsService: LessonsService);
     findByCourse(courseId: string): import("@prisma/client").Prisma.PrismaPromise<{
         id: string;
-        courseId: string;
         title: string;
-        content: string | null;
-        order: number;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        order: number;
+        courseId: string;
     }[]>;
     findOne(id: string): Promise<{
         prevLessonId: string | null;
@@ -19,38 +19,38 @@ export declare class LessonsController {
             id: string;
         }[];
         id: string;
-        courseId: string;
         title: string;
-        content: string | null;
-        order: number;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        order: number;
+        courseId: string;
     }>;
     create(dto: CreateLessonDto): import("@prisma/client").Prisma.Prisma__LessonClient<{
         id: string;
-        courseId: string;
         title: string;
-        content: string | null;
-        order: number;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        order: number;
+        courseId: string;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
     update(id: string, dto: UpdateLessonDto): Promise<{
         id: string;
-        courseId: string;
         title: string;
-        content: string | null;
-        order: number;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        order: number;
+        courseId: string;
     }>;
     remove(id: string): Promise<{
         id: string;
-        courseId: string;
         title: string;
-        content: string | null;
-        order: number;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        order: number;
+        courseId: string;
     }>;
 }
