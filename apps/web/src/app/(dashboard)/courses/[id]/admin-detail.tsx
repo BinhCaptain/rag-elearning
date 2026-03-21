@@ -1,0 +1,139 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { BookOpen, PlayCircle, Plus, Edit, Trash, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { CreateLessonModal } from "@/components/courses/create-lesson-modal";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+interface Lesson {
+  id: string;
+  title: string;
+  order: number;
+  content?: string;
+}
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  lessons: Lesson[];
+}
+
+interface AdminCourseDetailPageProps {
+  course: Course;
+}
+
+export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageProps) {
+  const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+
+  const handleEditClick = (lesson: Lesson) => {
+    setSelectedLesson(lesson);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateClick = () => {
+    setSelectedLesson(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (lessonId: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa bài học này không?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:3001/api/v1/lessons/${lessonId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete lesson");
+      
+      toast.success("Đã xóa bài học!");
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi khi xóa bài học.");
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-8 pb-12 animate-fade-in-up">
+      {/* Breadcrumbs / Back button */}
+      <Link href="/courses" className="flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors group w-fit">
+        <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+        Quay lại Quản lý Khóa học
+      </Link>
+
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider mb-2">
+            Level {course.level}
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 border-none">{course.title}</h1>
+          <p className="text-slate-500 mt-2 max-w-2xl">{course.description}</p>
+        </div>
+        <Button className="shrink-0 gap-2" onClick={handleCreateClick}>
+          <Plus className="h-4 w-4" />
+          Thêm bài học mới
+        </Button>
+      </div>
+
+      <Separator className="bg-slate-200" />
+
+      {/* Syllabus Management */}
+      <div className="space-y-6 flex-1">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-900 font-display">Nội dung bài học ({course.lessons.length})</h2>
+        </div>
+        
+        <div className="grid gap-3">
+          {course.lessons.length === 0 ? (
+            <div className="text-center py-12 text-slate-500 bg-slate-50 border border-slate-100 rounded-2xl">
+              Chưa có bài học nào. Bấm "Thêm bài học mới" để bắt đầu.
+            </div>
+          ) : (
+            course.lessons.sort((a, b) => a.order - b.order).map((lesson, index) => (
+              <div key={lesson.id} className="group flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-primary/40 transition-all duration-300 shadow-sm">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-500">
+                    {lesson.order}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-slate-900 truncate">
+                      {lesson.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                      <PlayCircle className="h-3 w-3" /> Nội dung bài giảng
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button variant="ghost" size="sm" className="text-slate-500 hover:text-blue-600" onClick={() => handleEditClick(lesson)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Sửa
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-slate-500 hover:text-red-600" onClick={() => handleDelete(lesson.id)}>
+                    <Trash className="h-4 w-4 mr-2" />
+                    Xóa
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <CreateLessonModal 
+        open={isModalOpen} 
+        onOpenChange={setIsModalOpen} 
+        courseId={course.id} 
+        initialData={selectedLesson} 
+      />
+    </div>
+  );
+}
