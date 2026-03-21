@@ -3,7 +3,7 @@ import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 export declare class CoursesController {
     private readonly coursesService;
     constructor(coursesService: CoursesService);
-    findAll(): import("@prisma/client").Prisma.PrismaPromise<({
+    findAll(isAdmin?: string): import("@prisma/client").Prisma.PrismaPromise<({
         _count: {
             lessons: number;
         };
@@ -22,9 +22,9 @@ export declare class CoursesController {
             title: string;
             createdAt: Date;
             updatedAt: Date;
-            content: string | null;
             order: number;
             courseId: string;
+            content: string | null;
         }[];
     } & {
         id: string;
