@@ -5,12 +5,15 @@ import { ArrowLeft, ArrowRight, BrainCircuit, ChevronLeft, MessageSquare, PlayCi
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { notFound } from "next/navigation";
+import { getUser } from "@/lib/auth";
+import AdminLessonDetailPage from "./admin-lesson-detail";
 
 interface Lesson {
   id: string;
   courseId: string;
   title: string;
   content: string;
+  videoUrl?: string;
   order: number;
   prevLessonId: string | null;
   nextLessonId: string | null;
@@ -43,9 +46,14 @@ export default async function LessonPage({ params }: { params: { id: string; les
   
   const lesson = await getLesson(lessonId);
   const course = await getCourse(id);
+  const user = await getUser();
 
   if (!lesson || !course) {
     notFound();
+  }
+
+  if (user.role === "ADMIN") {
+    return <AdminLessonDetailPage lesson={lesson} course={course} />;
   }
 
   const quizId = lesson.quizzes[0]?.id;
@@ -94,18 +102,30 @@ export default async function LessonPage({ params }: { params: { id: string; les
                </h1>
             </div>
 
-            {/* Video Player Mockup */}
-            <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video relative flex items-center justify-center group cursor-pointer shadow-2xl">
-               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent flex items-end p-6">
-                 <div className="flex items-center gap-3">
+            {/* Video Player */}
+            {lesson.videoUrl ? (
+              <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video shadow-2xl">
+                <iframe
+                  src={getEmbedUrl(lesson.videoUrl)}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={lesson.title}
+                />
+              </div>
+            ) : (
+              <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video relative flex items-center justify-center group shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent flex items-end p-6">
+                  <div className="flex items-center gap-3">
                     <PlayCircle className="h-5 w-5 text-primary" />
-                    <h2 className="text-white font-medium">Xem video bài giảng</h2>
-                 </div>
-               </div>
-               <div className="h-20 w-20 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center group-hover:scale-110 transition-all duration-500 shadow-white/5 shadow-2xl">
-                 <PlayCircle className="h-10 w-10 text-white fill-white/10" />
-               </div>
-            </div>
+                    <h2 className="text-white font-medium text-sm">Bài học này chưa có video bài giảng</h2>
+                  </div>
+                </div>
+                <div className="h-20 w-20 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center">
+                  <PlayCircle className="h-10 w-10 text-white/40" />
+                </div>
+              </div>
+            )}
 
             {/* Lesson Text Content */}
             <div className="prose prose-slate prose-lg max-w-none">
@@ -195,4 +215,22 @@ export default async function LessonPage({ params }: { params: { id: string; les
       </div>
     </div>
   );
+}
+
+function getEmbedUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes("youtube.com") && parsed.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${parsed.searchParams.get("v")}`;
+    }
+    if (parsed.hostname.includes("youtu.be")) {
+      return `https://www.youtube.com/embed${parsed.pathname}`;
+    }
+    if (parsed.hostname.includes("vimeo.com")) {
+      return `https://player.vimeo.com/video${parsed.pathname}`;
+    }
+    return url;
+  } catch {
+    return url;
+  }
 }

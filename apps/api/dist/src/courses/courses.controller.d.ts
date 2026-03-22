@@ -22,9 +22,10 @@ export declare class CoursesController {
             title: string;
             createdAt: Date;
             updatedAt: Date;
+            content: string | null;
+            videoUrl: string | null;
             order: number;
             courseId: string;
-            content: string | null;
         }[];
     } & {
         id: string;

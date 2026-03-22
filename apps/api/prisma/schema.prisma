@@ -47,6 +47,7 @@ model Lesson {
   courseId  String   @map("course_id")
   title     String
   content   String?  @db.Text
+  videoUrl  String?  @map("video_url") @db.Text
   order     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

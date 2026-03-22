@@ -23,6 +23,7 @@ export declare class CoursesService {
             createdAt: Date;
             updatedAt: Date;
             content: string | null;
+            videoUrl: string | null;
             order: number;
             courseId: string;
         }[];

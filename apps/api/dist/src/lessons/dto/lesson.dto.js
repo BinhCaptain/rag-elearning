@@ -16,6 +16,7 @@ class CreateLessonDto {
     courseId;
     title;
     content;
+    videoUrl;
     order;
 }
 exports.CreateLessonDto = CreateLessonDto;
@@ -33,6 +34,11 @@ __decorate([
     __metadata("design:type", String)
 ], CreateLessonDto.prototype, "content", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateLessonDto.prototype, "videoUrl", void 0);
+__decorate([
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
@@ -42,6 +48,7 @@ __decorate([
 class UpdateLessonDto {
     title;
     content;
+    videoUrl;
     order;
 }
 exports.UpdateLessonDto = UpdateLessonDto;
@@ -55,6 +62,11 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateLessonDto.prototype, "content", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateLessonDto.prototype, "videoUrl", void 0);
 __decorate([
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),

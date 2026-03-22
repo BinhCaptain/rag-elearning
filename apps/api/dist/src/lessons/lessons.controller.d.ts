@@ -9,6 +9,7 @@ export declare class LessonsController {
         createdAt: Date;
         updatedAt: Date;
         content: string | null;
+        videoUrl: string | null;
         order: number;
         courseId: string;
     }[]>;
@@ -23,6 +24,7 @@ export declare class LessonsController {
         createdAt: Date;
         updatedAt: Date;
         content: string | null;
+        videoUrl: string | null;
         order: number;
         courseId: string;
     }>;
@@ -32,6 +34,7 @@ export declare class LessonsController {
         createdAt: Date;
         updatedAt: Date;
         content: string | null;
+        videoUrl: string | null;
         order: number;
         courseId: string;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
@@ -41,6 +44,7 @@ export declare class LessonsController {
         createdAt: Date;
         updatedAt: Date;
         content: string | null;
+        videoUrl: string | null;
         order: number;
         courseId: string;
     }>;
@@ -50,6 +54,7 @@ export declare class LessonsController {
         createdAt: Date;
         updatedAt: Date;
         content: string | null;
+        videoUrl: string | null;
         order: number;
         courseId: string;
     }>;

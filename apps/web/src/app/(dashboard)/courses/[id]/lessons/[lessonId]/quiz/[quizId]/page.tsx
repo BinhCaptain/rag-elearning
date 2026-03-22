@@ -82,13 +82,23 @@ export default function QuizPage() {
     setShowResult(true);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestionIndex < quiz.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOptionId(null);
       setShowResult(false);
     } else {
       setIsFinished(true);
+      try {
+        const answersArray = quiz.questions.map(q => answers[q.id] || "");
+        await fetch(`http://localhost:3001/api/v1/quizzes/${quizId}/submit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers: answersArray }),
+        });
+      } catch (err) {
+        console.error("Lỗi nộp bài trắc nghiệm", err);
+      }
     }
   };
 
