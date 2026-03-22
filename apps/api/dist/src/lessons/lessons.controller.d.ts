@@ -4,14 +4,14 @@ export declare class LessonsController {
     private readonly lessonsService;
     constructor(lessonsService: LessonsService);
     findByCourse(courseId: string): import("@prisma/client").Prisma.PrismaPromise<{
-        id: string;
-        title: string;
-        createdAt: Date;
-        updatedAt: Date;
         content: string | null;
+        title: string;
+        courseId: string;
         videoUrl: string | null;
         order: number;
-        courseId: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
     findOne(id: string): Promise<{
         prevLessonId: string | null;
@@ -19,43 +19,43 @@ export declare class LessonsController {
         quizzes: {
             id: string;
         }[];
-        id: string;
-        title: string;
-        createdAt: Date;
-        updatedAt: Date;
         content: string | null;
+        title: string;
+        courseId: string;
         videoUrl: string | null;
         order: number;
-        courseId: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
-    create(dto: CreateLessonDto): import("@prisma/client").Prisma.Prisma__LessonClient<{
-        id: string;
-        title: string;
-        createdAt: Date;
-        updatedAt: Date;
+    create(dto: CreateLessonDto): Promise<{
         content: string | null;
+        title: string;
+        courseId: string;
         videoUrl: string | null;
         order: number;
-        courseId: string;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
     update(id: string, dto: UpdateLessonDto): Promise<{
-        id: string;
-        title: string;
-        createdAt: Date;
-        updatedAt: Date;
         content: string | null;
+        title: string;
+        courseId: string;
         videoUrl: string | null;
         order: number;
-        courseId: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     remove(id: string): Promise<{
-        id: string;
-        title: string;
-        createdAt: Date;
-        updatedAt: Date;
         content: string | null;
+        title: string;
+        courseId: string;
         videoUrl: string | null;
         order: number;
-        courseId: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

@@ -28,7 +28,10 @@ let CoursesService = class CoursesService {
         const course = await this.prisma.course.findUnique({
             where: { id },
             include: {
-                lessons: { orderBy: { order: 'asc' } },
+                lessons: {
+                    orderBy: { order: 'asc' },
+                    include: { quizzes: { select: { id: true } } },
+                },
             },
         });
         if (!course)

@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       toast.error("Vui lòng nhập đầy đủ thông tin");
@@ -25,20 +25,35 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    
-    setTimeout(() => {
-      setLoading(false);
-      // Hardcoded mock check
-      if (email === "admin" && password === "admin") {
-        Cookies.set("role", "admin", { expires: 7 });
-        toast.success("Đăng nhập thành công với quyền Admin");
-        router.push("/dashboard");
-      } else {
-        Cookies.set("role", "student", { expires: 7 });
-        toast.success("Đăng nhập thành công với quyền Học sinh");
-        router.push("/dashboard");
+
+    try {
+      const res = await fetch("http://localhost:3001/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Email hoặc mật khẩu không đúng");
       }
-    }, 1000);
+
+      const data = await res.json();
+
+      // Store token and user profile in cookies (7-day expiry)
+      Cookies.set("token", data.accessToken, { expires: 7 });
+      Cookies.set("user_id", data.user.id, { expires: 7 });
+      Cookies.set("user_name", data.user.name || data.user.email, { expires: 7 });
+      Cookies.set("user_email", data.user.email, { expires: 7 });
+      Cookies.set("user_role", data.user.role, { expires: 7 });
+
+      toast.success(`Chào mừng, ${data.user.name || data.user.email}!`);
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,6 +76,9 @@ export default function LoginPage() {
       <div className="flex items-center justify-center p-6 sm:p-12 animate-fade-in-up">
         <Card className="w-full max-w-sm border-0 shadow-xl shadow-slate-200/50 bg-white/80 backdrop-blur-sm sm:border sm:border-slate-200">
           <CardHeader className="space-y-2 text-center pb-6">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 mb-2 lg:hidden">
+              <BrainCircuit className="h-6 w-6 text-primary" />
+            </div>
             <CardTitle className="text-2xl font-bold tracking-tight">Đăng nhập tài khoản</CardTitle>
             <CardDescription className="text-slate-500">
               Nhập email và mật khẩu của bạn để vào học
@@ -69,25 +87,24 @@ export default function LoginPage() {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email / Tên đăng nhập</Label>
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
                   <AtSign className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <Input 
                     id="email" 
-                    type="text" 
-                    placeholder="admin hoặc student" 
+                    type="email" 
+                    placeholder="your@email.com" 
                     className="pl-9" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Mật khẩu</Label>
-                  <Link href="#" className="text-sm font-medium text-primary hover:underline" tabIndex={-1}>
-                    Quên mật khẩu?
-                  </Link>
                 </div>
                 <div className="relative">
                   <Asterisk className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -95,15 +112,18 @@ export default function LoginPage() {
                     id="password" 
                     type="password" 
                     className="pl-9" 
+                    placeholder="Nhập mật khẩu..."
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
                   />
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-4">
               <Button className="w-full h-11 text-base" type="submit" disabled={loading}>
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Đăng nhập vào hệ thống"}
+                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang đăng nhập...</> : "Đăng nhập vào hệ thống"}
               </Button>
               <div className="text-center text-sm text-slate-500">
                 Chưa có tài khoản?{" "}

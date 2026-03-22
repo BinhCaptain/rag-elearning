@@ -51,12 +51,54 @@ let LessonsService = class LessonsService {
             nextLessonId,
         };
     }
-    create(dto) {
-        return this.prisma.lesson.create({ data: dto });
+    async create(dto) {
+        const { quiz, ...lessonData } = dto;
+        return this.prisma.lesson.create({
+            data: {
+                ...lessonData,
+                quizzes: quiz ? {
+                    create: {
+                        title: quiz.title,
+                        questions: {
+                            create: quiz.questions.map((q) => ({
+                                content: q.content,
+                                explanation: q.explanation,
+                                options: {
+                                    create: q.options,
+                                },
+                            })),
+                        },
+                    },
+                } : undefined,
+            },
+        });
     }
     async update(id, dto) {
+        const { quiz, ...lessonData } = dto;
         await this.findOne(id);
-        return this.prisma.lesson.update({ where: { id }, data: dto });
+        if (quiz) {
+            await this.prisma.quiz.deleteMany({ where: { lessonId: id } });
+        }
+        return this.prisma.lesson.update({
+            where: { id },
+            data: {
+                ...lessonData,
+                quizzes: quiz ? {
+                    create: {
+                        title: quiz.title,
+                        questions: {
+                            create: quiz.questions.map((q) => ({
+                                content: q.content,
+                                explanation: q.explanation,
+                                options: {
+                                    create: q.options,
+                                },
+                            })),
+                        },
+                    },
+                } : undefined,
+            },
+        });
     }
     async remove(id) {
         await this.findOne(id);

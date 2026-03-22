@@ -15,7 +15,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { PlayCircle, FileText, Youtube } from "lucide-react";
+import { PlayCircle, FileText, Youtube, ListChecks, Plus, Trash, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CreateLessonModalProps {
   open: boolean;
@@ -33,13 +34,19 @@ interface CreateLessonModalProps {
 export function CreateLessonModal({ open, onOpenChange, courseId, initialData }: CreateLessonModalProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "video" | "content">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "video" | "content" | "quiz">("info");
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     content: initialData?.content || "",
     videoUrl: initialData?.videoUrl || "",
     order: initialData?.order || 1,
   });
+
+  const [questions, setQuestions] = useState<{
+    content: string;
+    explanation: string;
+    options: { content: string; isCorrect: boolean }[];
+  }[]>([]);
 
   React.useEffect(() => {
     if (initialData) {
@@ -49,11 +56,79 @@ export function CreateLessonModal({ open, onOpenChange, courseId, initialData }:
         videoUrl: initialData.videoUrl || "",
         order: initialData.order || 1,
       });
+      // Fetch quiz data if exists
+      fetchQuizData(initialData.id);
     } else {
       setFormData({ title: "", content: "", videoUrl: "", order: 1 });
+      setQuestions([]);
     }
     setActiveTab("info");
   }, [initialData, open]);
+
+  const fetchQuizData = async (lessonId: string) => {
+    try {
+      const res = await fetch(`http://localhost:3001/api/v1/quizzes?lessonId=${lessonId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const quiz = data[0];
+          setQuestions(quiz.questions.map((q: any) => ({
+            content: q.content,
+            explanation: q.explanation || "",
+            options: q.options.map((o: any) => ({
+              content: o.content,
+              isCorrect: o.isCorrect
+            }))
+          })));
+        } else {
+          setQuestions([]);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching quiz:", error);
+    }
+  };
+
+  const addQuestion = () => {
+    setQuestions([
+      ...questions,
+      {
+        content: "",
+        explanation: "",
+        options: [
+          { content: "Đáp án A", isCorrect: true },
+          { content: "Đáp án B", isCorrect: false },
+          { content: "Đáp án C", isCorrect: false },
+          { content: "Đáp án D", isCorrect: false },
+        ],
+      },
+    ]);
+  };
+
+  const removeQuestion = (index: number) => {
+    setQuestions(questions.filter((_, i) => i !== index));
+  };
+
+  const updateQuestion = (index: number, field: string, value: any) => {
+    const newQuestions = [...questions];
+    newQuestions[index] = { ...newQuestions[index], [field]: value };
+    setQuestions(newQuestions);
+  };
+
+  const updateOption = (qIndex: number, oIndex: number, field: string, value: any) => {
+    const newQuestions = [...questions];
+    const newOptions = [...newQuestions[qIndex].options];
+    
+    if (field === "isCorrect" && value === true) {
+      // Only one correct option per question
+      newOptions.forEach((o, i) => o.isCorrect = i === oIndex);
+    } else {
+      newOptions[oIndex] = { ...newOptions[oIndex], [field]: value };
+    }
+    
+    newQuestions[qIndex].options = newOptions;
+    setQuestions(newQuestions);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +146,14 @@ export function CreateLessonModal({ open, onOpenChange, courseId, initialData }:
         videoUrl: formData.videoUrl || undefined,
         courseId,
         order: Number(formData.order),
+        quiz: questions.length > 0 ? {
+          title: `Quiz for ${formData.title}`,
+          questions: questions.map(q => ({
+            content: q.content,
+            explanation: q.explanation,
+            options: q.options
+          }))
+        } : undefined
       };
 
       const res = await fetch(url, {
@@ -96,6 +179,7 @@ export function CreateLessonModal({ open, onOpenChange, courseId, initialData }:
     { id: "info" as const, label: "Thông tin", icon: FileText },
     { id: "video" as const, label: "Video bài giảng", icon: Youtube },
     { id: "content" as const, label: "Nội dung văn bản", icon: PlayCircle },
+    { id: "quiz" as const, label: "Trắc nghiệm", icon: ListChecks },
   ];
 
   return (
@@ -193,26 +277,88 @@ export function CreateLessonModal({ open, onOpenChange, courseId, initialData }:
               </div>
             )}
 
-            {/* Tab: Content */}
-            {activeTab === "content" && (
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="content">Nội dung bài học (Văn bản / Markdown)</Label>
-                  <Textarea
-                    id="content"
-                    placeholder="Nhập nội dung bài học, tài liệu đọc, ghi chú giảng viên...
-
-Bạn có thể dùng Markdown:
-# Tiêu đề lớn
-## Tiêu đề nhỏ
-**in đậm**, *in nghiêng*
-- Danh sách gạch đầu dòng"
-                    className="min-h-[200px] font-mono text-sm"
-                    value={formData.content}
-                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  />
-                  <p className="text-xs text-slate-500">Hỗ trợ Markdown cơ bản.</p>
+            {/* Tab: Quiz */}
+            {activeTab === "quiz" && (
+              <div className="space-y-6 max-h-[400px] overflow-auto pr-2 custom-scrollbar">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-900">Câu hỏi trắc nghiệm</h4>
+                    <p className="text-xs text-slate-500">Tạo các câu hỏi kiểm tra kiến thức cho bài học này.</p>
+                  </div>
+                  <Button type="button" size="sm" onClick={addQuestion} className="gap-2">
+                    <Plus className="h-4 w-4" /> Thêm câu hỏi
+                  </Button>
                 </div>
+
+                {questions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 gap-2">
+                    <ListChecks className="h-10 w-10 opacity-20" />
+                    <p className="text-sm">Chưa có câu hỏi nào</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {questions.map((question, qIndex) => (
+                      <div key={qIndex} className="p-4 rounded-2xl border border-slate-200 bg-white space-y-4 relative group">
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon-sm" 
+                          className="absolute top-2 right-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeQuestion(qIndex)}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                        
+                        <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">Câu {qIndex + 1}</Badge>
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Nội dung câu hỏi</Label>
+                          <Input
+                            placeholder="Nhập câu hỏi..."
+                            value={question.content}
+                            onChange={(e) => updateQuestion(qIndex, "content", e.target.value)}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {question.options.map((option, oIndex) => (
+                            <div key={oIndex} className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${option.isCorrect ? "border-green-200 bg-green-50/50" : "border-slate-100 bg-slate-50/30"}`}>
+                              <button
+                                type="button"
+                                onClick={() => updateOption(qIndex, oIndex, "isCorrect", true)}
+                                className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                  option.isCorrect 
+                                    ? "bg-green-500 border-green-500 text-white" 
+                                    : "bg-white border-slate-200 text-transparent"
+                                }`}
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </button>
+                              <Input
+                                className="h-8 border-none bg-transparent shadow-none px-0 focus-visible:ring-0 text-sm"
+                                placeholder={`Đáp án ${String.fromCharCode(65 + oIndex)}`}
+                                value={option.content}
+                                onChange={(e) => updateOption(qIndex, oIndex, "content", e.target.value)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Giải thích (Không bắt buộc)</Label>
+                          <Input
+                            className="text-sm bg-slate-50/50 border-none"
+                            placeholder="Giải thích tại sao đáp án này đúng..."
+                            value={question.explanation}
+                            onChange={(e) => updateQuestion(qIndex, "explanation", e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

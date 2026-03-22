@@ -17,16 +17,20 @@ export declare class CoursesController {
         updatedAt: Date;
     })[]>;
     findOne(id: string): Promise<{
-        lessons: {
+        lessons: ({
+            quizzes: {
+                id: string;
+            }[];
+        } & {
             id: string;
             title: string;
             createdAt: Date;
             updatedAt: Date;
-            content: string | null;
-            videoUrl: string | null;
             order: number;
             courseId: string;
-        }[];
+            content: string | null;
+            videoUrl: string | null;
+        })[];
     } & {
         id: string;
         title: string;

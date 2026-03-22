@@ -33,6 +33,19 @@ const adminMenuItems = [
   { title: "Quản lý AI Chatbot", url: "/chat", icon: BrainCircuit },
 ];
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronUp, CreditCard, Sparkles } from "lucide-react";
+import { LogoutButton } from "./logout-button";
+import { Badge } from "@/components/ui/badge";
+
 export function AppSidebar({ user }: { user: UserProfile }) {
   const pathname = usePathname();
   const { state } = useSidebar();
@@ -82,21 +95,71 @@ export function AppSidebar({ user }: { user: UserProfile }) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-slate-200 p-4">
+      <SidebarFooter className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback>{user.role === "ADMIN" ? "AD" : "HS"}</AvatarFallback>
-              </Avatar>
-              {state === "expanded" && (
-                <div className="flex flex-col flex-1 overflow-hidden">
-                  <span className="text-sm font-medium text-slate-900 truncate">{user.name}</span>
-                  <span className="text-xs text-slate-500 truncate">{user.email}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton size="lg" className="data-[state=open]:bg-slate-100 transition-colors">
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarFallback className="rounded-lg">{user.role === "ADMIN" ? "AD" : "HS"}</AvatarFallback>
+                    </Avatar>
+                    {state === "expanded" && (
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold">{user.name}</span>
+                        <span className="truncate text-xs text-slate-500">{user.email}</span>
+                      </div>
+                    )}
+                    <ChevronUp className="ml-auto h-4 w-4 text-slate-400" />
+                  </SidebarMenuButton>
+                }
+              />
+              <DropdownMenuContent
+                side="top"
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl border-slate-200"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                      <Avatar className="h-8 w-8 rounded-lg">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="rounded-lg">{user.role === "ADMIN" ? "AD" : "HS"}</AvatarFallback>
+                      </Avatar>
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate font-semibold">{user.name}</span>
+                          <Badge variant="secondary" className="h-4 text-[10px] px-1 bg-primary/10 text-primary border-none">
+                            {user.role}
+                          </Badge>
+                        </div>
+                        <span className="truncate text-xs text-slate-500">{user.email}</span>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer gap-2 py-2">
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  Nâng cấp Pro
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer gap-2 py-2">
+                  <User className="h-4 w-4 text-slate-500" />
+                  Hồ sơ cá nhân
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer gap-2 py-2">
+                  <Settings className="h-4 w-4 text-slate-500" />
+                  Cài đặt
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="p-1">
+                  <LogoutButton />
                 </div>
-              )}
-            </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

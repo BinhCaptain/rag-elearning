@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, PlayCircle, ChevronRight, Clock, Star, Users, ArrowLeft } from "lucide-react";
+import { BookOpen, PlayCircle, ChevronRight, Clock, Star, Users, ArrowLeft, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/auth";
@@ -11,6 +11,8 @@ interface Lesson {
   id: string;
   title: string;
   order: number;
+  videoUrl?: string;
+  quizzes?: { id: string }[];
 }
 
 interface Course {
@@ -97,7 +99,13 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
                         {lesson.title}
                       </h3>
                       <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                        <PlayCircle className="h-3 w-3" /> 15 phút bài giảng
+                        {lesson.quizzes && lesson.quizzes.length > 0 ? (
+                          <><ListChecks className="h-3 w-3 text-amber-500" /> Bài tập trắc nghiệm</>
+                        ) : lesson.videoUrl ? (
+                          <><PlayCircle className="h-3 w-3 text-blue-500" /> 15 phút bài giảng</>
+                        ) : (
+                          <><BookOpen className="h-3 w-3 text-slate-400" /> Nội dung bài học</>
+                        )}
                       </p>
                     </div>
                     <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />

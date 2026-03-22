@@ -9,15 +9,66 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateLessonDto = exports.CreateLessonDto = void 0;
+exports.UpdateLessonDto = exports.CreateLessonDto = exports.NestedQuizDto = exports.NestedQuestionDto = exports.NestedOptionDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
+class NestedOptionDto {
+    content;
+    isCorrect;
+}
+exports.NestedOptionDto = NestedOptionDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], NestedOptionDto.prototype, "content", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], NestedOptionDto.prototype, "isCorrect", void 0);
+class NestedQuestionDto {
+    content;
+    explanation;
+    options;
+}
+exports.NestedQuestionDto = NestedQuestionDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], NestedQuestionDto.prototype, "content", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], NestedQuestionDto.prototype, "explanation", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => NestedOptionDto),
+    __metadata("design:type", Array)
+], NestedQuestionDto.prototype, "options", void 0);
+class NestedQuizDto {
+    title;
+    questions;
+}
+exports.NestedQuizDto = NestedQuizDto;
+__decorate([
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], NestedQuizDto.prototype, "title", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => NestedQuestionDto),
+    __metadata("design:type", Array)
+], NestedQuizDto.prototype, "questions", void 0);
 class CreateLessonDto {
     courseId;
     title;
     content;
     videoUrl;
     order;
+    quiz;
 }
 exports.CreateLessonDto = CreateLessonDto;
 __decorate([
@@ -45,11 +96,18 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreateLessonDto.prototype, "order", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => NestedQuizDto),
+    __metadata("design:type", NestedQuizDto)
+], CreateLessonDto.prototype, "quiz", void 0);
 class UpdateLessonDto {
     title;
     content;
     videoUrl;
     order;
+    quiz;
 }
 exports.UpdateLessonDto = UpdateLessonDto;
 __decorate([
@@ -74,4 +132,10 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateLessonDto.prototype, "order", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => NestedQuizDto),
+    __metadata("design:type", NestedQuizDto)
+], UpdateLessonDto.prototype, "quiz", void 0);
 //# sourceMappingURL=lesson.dto.js.map

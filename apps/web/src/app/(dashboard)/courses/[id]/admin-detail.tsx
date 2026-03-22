@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, PlayCircle, Plus, Edit, Trash, ArrowLeft } from "lucide-react";
+import { BookOpen, PlayCircle, Plus, Edit, Trash, ArrowLeft, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { CreateLessonModal } from "@/components/courses/create-lesson-modal";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,8 @@ interface Lesson {
   title: string;
   order: number;
   content?: string;
+  videoUrl?: string;
+  quizzes?: { id: string }[];
 }
 
 interface Course {
@@ -21,6 +23,7 @@ interface Course {
   title: string;
   description: string;
   level: string;
+  isPublished: boolean;
   lessons: Lesson[];
 }
 
@@ -60,6 +63,29 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
       toast.error("Lỗi khi xóa bài học.");
     }
   };
+  
+  const handleTogglePublish = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:3001/api/v1/courses/${course.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublished: !course.isPublished }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update course");
+      
+      toast.success(course.isPublished ? "Đã hủy công khai khóa học" : "Đã công khai khóa học!");
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi khi cập nhật trạng thái khóa học.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [loading, setLoading] = useState(false);
 
   return (
     <div className="flex flex-col gap-8 pb-12 animate-fade-in-up">
@@ -71,16 +97,37 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider mb-2">
-            Level {course.level}
+          <div className="flex items-center gap-2 mb-2">
+            <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider">
+              Level {course.level}
+            </div>
+            {course.isPublished ? (
+              <div className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700 uppercase tracking-wider">
+                Đã công khai
+              </div>
+            ) : (
+              <div className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Bản nháp
+              </div>
+            )}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 border-none">{course.title}</h1>
           <p className="text-slate-500 mt-2 max-w-2xl">{course.description}</p>
         </div>
-        <Button className="shrink-0 gap-2" onClick={handleCreateClick}>
-          <Plus className="h-4 w-4" />
-          Thêm bài học mới
-        </Button>
+        <div className="flex items-center gap-3 shrink-0">
+          <Button 
+            variant="outline" 
+            className={`${course.isPublished ? "text-slate-600" : "text-green-600 border-green-200 hover:bg-green-50"} gap-2`}
+            onClick={handleTogglePublish}
+            disabled={loading}
+          >
+            {course.isPublished ? "Hủy công khai" : "Công khai khóa học"}
+          </Button>
+          <Button className="gap-2" onClick={handleCreateClick}>
+            <Plus className="h-4 w-4" />
+            Thêm bài học mới
+          </Button>
+        </div>
       </div>
 
       <Separator className="bg-slate-200" />
@@ -108,7 +155,13 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
                       {lesson.title}
                     </h3>
                     <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                      <PlayCircle className="h-3 w-3" /> Nội dung bài giảng
+                      {lesson.quizzes && lesson.quizzes.length > 0 ? (
+                        <><ListChecks className="h-3 w-3 text-amber-500" /> Bài tập trắc nghiệm</>
+                      ) : lesson.videoUrl ? (
+                        <><PlayCircle className="h-3 w-3 text-blue-500" /> Video bài giảng</>
+                      ) : (
+                        <><BookOpen className="h-3 w-3 text-slate-400" /> Nội dung bài đọc</>
+                      )}
                     </p>
                   </div>
                 </div>

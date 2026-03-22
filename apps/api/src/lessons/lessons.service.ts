@@ -46,13 +46,60 @@ export class LessonsService {
     };
   }
 
-  create(dto: CreateLessonDto) {
-    return this.prisma.lesson.create({ data: dto });
+  async create(dto: CreateLessonDto) {
+    const { quiz, ...lessonData } = dto;
+    
+    return this.prisma.lesson.create({
+      data: {
+        ...lessonData,
+        quizzes: quiz ? {
+          create: {
+            title: quiz.title,
+            questions: {
+              create: quiz.questions.map((q) => ({
+                content: q.content,
+                explanation: q.explanation,
+                options: {
+                  create: q.options,
+                },
+              })),
+            },
+          },
+        } : undefined,
+      },
+    });
   }
 
   async update(id: string, dto: UpdateLessonDto) {
+    const { quiz, ...lessonData } = dto;
     await this.findOne(id);
-    return this.prisma.lesson.update({ where: { id }, data: dto });
+
+    // If quiz is provided, we'll replace the existing ones for simplicity
+    // or handle specific update logic. Here we replace for "sync" behavior.
+    if (quiz) {
+      await this.prisma.quiz.deleteMany({ where: { lessonId: id } });
+    }
+
+    return this.prisma.lesson.update({
+      where: { id },
+      data: {
+        ...lessonData,
+        quizzes: quiz ? {
+          create: {
+            title: quiz.title,
+            questions: {
+              create: quiz.questions.map((q) => ({
+                content: q.content,
+                explanation: q.explanation,
+                options: {
+                  create: q.options,
+                },
+              })),
+            },
+          },
+        } : undefined,
+      },
+    });
   }
 
   async remove(id: string) {
