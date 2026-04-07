@@ -16,6 +16,7 @@ exports.QuizzesController = void 0;
 const common_1 = require("@nestjs/common");
 const quizzes_service_1 = require("./quizzes.service");
 const quiz_dto_1 = require("./dto/quiz.dto");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let QuizzesController = class QuizzesController {
     quizzesService;
     constructor(quizzesService) {
@@ -30,8 +31,8 @@ let QuizzesController = class QuizzesController {
     create(dto) {
         return this.quizzesService.create(dto);
     }
-    submit(id, dto, userId) {
-        return this.quizzesService.submitAttempt(userId || 'mock-user-id', id, dto);
+    submit(id, dto, req) {
+        return this.quizzesService.submitAttempt(req.user.id, id, dto);
     }
 };
 exports.QuizzesController = QuizzesController;
@@ -57,12 +58,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], QuizzesController.prototype, "create", null);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)(':id/submit'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, common_1.Query)('userId')),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, quiz_dto_1.SubmitQuizDto, String]),
+    __metadata("design:paramtypes", [String, quiz_dto_1.SubmitQuizDto, Object]),
     __metadata("design:returntype", void 0)
 ], QuizzesController.prototype, "submit", null);
 exports.QuizzesController = QuizzesController = __decorate([

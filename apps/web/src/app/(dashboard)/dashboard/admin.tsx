@@ -1,9 +1,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, BrainCircuit, CheckCircle2, Clock, Users, Database } from "lucide-react";
 import { getUser } from "@/lib/auth";
+import { cookies } from "next/headers";
+
+async function getStats() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  
+  const res = await fetch("http://localhost:3001/api/v1/admin/dashboard/stats", {
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
 
 export default async function AdminDashboardPage() {
   const user = await getUser();
+  const stats = await getStats();
+
+  if (!stats) {
+    return <div className="p-8 text-center text-slate-500">Không thể tải thông tin thống kê.</div>;
+  }
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up">
@@ -21,8 +41,8 @@ export default async function AdminDashboardPage() {
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">1,245</div>
-            <p className="text-xs text-slate-500 mt-1">+12 học sinh mới tuần này</p>
+            <div className="text-2xl font-bold text-slate-900">{stats.userCount.toLocaleString()}</div>
+            <p className="text-xs text-slate-500 mt-1">Học sinh đăng ký hệ thống</p>
           </CardContent>
         </Card>
         
@@ -32,8 +52,8 @@ export default async function AdminDashboardPage() {
             <BookOpen className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">8</div>
-            <p className="text-xs text-slate-500 mt-1">2 khóa học đang dự thảo</p>
+            <div className="text-2xl font-bold text-slate-900">{stats.courseCount}</div>
+            <p className="text-xs text-slate-500 mt-1">{stats.lessonCount} bài học đã tạo</p>
           </CardContent>
         </Card>
 
@@ -43,8 +63,8 @@ export default async function AdminDashboardPage() {
             <Database className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">45,231</div>
-            <p className="text-xs text-slate-500 mt-1">Đã vectorize trong Qdrant</p>
+            <div className="text-2xl font-bold text-slate-900">{stats.ragStats.chunks.toLocaleString()}</div>
+            <p className="text-xs text-slate-500 mt-1">Trạng thái: {stats.ragStats.status}</p>
           </CardContent>
         </Card>
 
@@ -54,8 +74,8 @@ export default async function AdminDashboardPage() {
             <BrainCircuit className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">1,402 queries</div>
-            <p className="text-xs text-primary/80 mt-1">Tỉ lệ Hallucination &lt; 2%</p>
+            <div className="text-2xl font-bold text-primary">{stats.quizAttemptCount.toLocaleString()} attempts</div>
+            <p className="text-xs text-primary/80 mt-1">Tổng số lượt làm bài trắc nghiệm</p>
           </CardContent>
         </Card>
       </div>
@@ -70,21 +90,14 @@ export default async function AdminDashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-6 flex-1 overflow-auto">
-            {/* Dummy Course 1 */}
-            <div className="flex flex-col gap-2 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-medium text-slate-900">Ngữ pháp Tiếng Anh THCS - Tập 1</span>
-                <span className="text-sm font-medium text-primary">850 học viên</span>
+            {stats.popularCourses.map((course: any) => (
+              <div key={course.id} className="flex flex-col gap-2 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-medium text-slate-900">{course.title}</span>
+                  <span className="text-sm font-medium text-primary">{course.studentCount} học viên</span>
+                </div>
               </div>
-            </div>
-            
-            {/* Dummy Course 2 */}
-            <div className="flex flex-col gap-2 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-medium text-slate-900">Từ vựng IELST cho người mới bắt đầu</span>
-                <span className="text-sm font-medium text-primary">340 học viên</span>
-              </div>
-            </div>
+            ))}
           </CardContent>
         </Card>
 

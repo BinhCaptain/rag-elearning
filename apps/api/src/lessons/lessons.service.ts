@@ -13,11 +13,12 @@ export class LessonsService {
     });
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, userId?: string) {
     const lesson = await this.prisma.lesson.findUnique({
       where: { id },
       include: { 
         quizzes: { select: { id: true } },
+        progress: userId ? { where: { userId } } : undefined,
         course: {
           include: {
             lessons: {
@@ -37,13 +38,47 @@ export class LessonsService {
     const prevLessonId = currentIndex > 0 ? courseLessons[currentIndex - 1].id : null;
     const nextLessonId = currentIndex < courseLessons.length - 1 ? courseLessons[currentIndex + 1].id : null;
 
+    const isCompleted = lesson.progress ? lesson.progress.length > 0 && lesson.progress[0].status === 'COMPLETED' : false;
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { course, ...lessonData } = lesson;
+    const { course, progress, ...lessonData } = lesson;
     return {
       ...lessonData,
       prevLessonId,
       nextLessonId,
+      isCompleted,
     };
+  }
+
+  async toggleProgress(lessonId: string, userId: string) {
+    const progress = await this.prisma.progress.findUnique({
+      where: {
+        userId_lessonId: { userId, lessonId }
+      }
+    });
+
+    if (progress && progress.status === 'COMPLETED') {
+      return this.prisma.progress.update({
+        where: { id: progress.id },
+        data: { status: 'IN_PROGRESS', completedAt: null }
+      });
+    }
+
+    return this.prisma.progress.upsert({
+      where: {
+        userId_lessonId: { userId, lessonId }
+      },
+      create: {
+        userId,
+        lessonId,
+        status: 'COMPLETED',
+        completedAt: new Date(),
+      },
+      update: {
+        status: 'COMPLETED',
+        completedAt: new Date(),
+      }
+    });
   }
 
   async create(dto: CreateLessonDto) {

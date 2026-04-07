@@ -24,6 +24,7 @@ model User {
 
   quizAttempts QuizAttempt[]
   progress     Progress[]
+  enrollments  Enrollment[]
 
   @@map("users")
 }
@@ -38,6 +39,7 @@ model Course {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   lessons     Lesson[]
+  enrollments Enrollment[]
 
   @@map("courses")
 }
@@ -132,4 +134,18 @@ model Progress {
   @@unique([userId, lessonId])
   @@index([lessonId])
   @@map("progress")
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  courseId  String   @map("course_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+  @@map("enrollments")
 }

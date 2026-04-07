@@ -60,7 +60,7 @@ export declare class QuizzesController {
         title: string;
         lessonId: string;
     }>;
-    submit(id: string, dto: SubmitQuizDto, userId?: string): Promise<{
+    submit(id: string, dto: SubmitQuizDto, req: any): Promise<{
         id: string;
         createdAt: Date;
         score: number;

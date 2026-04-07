@@ -29,6 +29,8 @@ interface AdminCoursesPageProps {
 export default function AdminCoursesPage({ initialCourses }: AdminCoursesPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "published" | "draft">("all");
 
   const handleEditClick = (course: Course) => {
     setSelectedCourse(course);
@@ -63,6 +65,15 @@ export default function AdminCoursesPage({ initialCourses }: AdminCoursesPagePro
       toast.error("Có lỗi xảy ra khi xóa khóa học.");
     }
   };
+  
+  const filteredCourses = initialCourses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = 
+      filterStatus === "all" || 
+      (filterStatus === "published" && course.isPublished) || 
+      (filterStatus === "draft" && !course.isPublished);
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in-up h-full">
@@ -81,10 +92,23 @@ export default function AdminCoursesPage({ initialCourses }: AdminCoursesPagePro
         <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-            <Input placeholder="Tìm kiếm khóa học..." className="pl-9 bg-white" />
+            <Input 
+              placeholder="Tìm kiếm khóa học..." 
+              className="pl-9 bg-white" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">Lọc trạng thái</Button>
+            <select 
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="published">Đã công khai</option>
+              <option value="draft">Bản nháp</option>
+            </select>
           </div>
         </div>
 
@@ -101,7 +125,7 @@ export default function AdminCoursesPage({ initialCourses }: AdminCoursesPagePro
               </TableRow>
             </TableHeader>
             <TableBody>
-              {initialCourses.map((course) => (
+              {filteredCourses.map((course) => (
                 <TableRow key={course.id}>
                   <TableCell className="font-medium text-slate-900">
                     <Link href={`/courses/${course.id}`} className="hover:text-primary transition-colors">

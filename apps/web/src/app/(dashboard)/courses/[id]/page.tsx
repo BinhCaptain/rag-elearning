@@ -6,6 +6,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import AdminCourseDetailPage from "./admin-detail";
+import EnrollButton from "@/components/enroll-button";
+import { cookies } from "next/headers";
 
 interface Lesson {
   id: string;
@@ -20,9 +22,24 @@ interface Course {
   title: string;
   description: string;
   level: string;
+  isPublished: boolean;
   lessons: Lesson[];
 }
 
+async function getEnrollmentStatus(courseId: string, token?: string): Promise<boolean> {
+  if (!token) return false;
+  try {
+    const res = await fetch(`http://localhost:3001/api/v1/enrollments/check/${courseId}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.enrolled;
+  } catch {
+    return false;
+  }
+}
 async function getCourse(id: string): Promise<Course | null> {
   const res = await fetch(`http://localhost:3001/api/v1/courses/${id}`, {
     cache: "no-store",
@@ -33,8 +50,11 @@ async function getCourse(id: string): Promise<Course | null> {
 
 export default async function CourseDetailPage({ params }: { params: { id: string } }) {
   const { id } = await params;
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
   const course = await getCourse(id);
   const user = await getUser();
+  const isEnrolled = await getEnrollmentStatus(id, token);
 
   if (!course) {
     notFound();
@@ -128,9 +148,11 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
               <div className="flex items-center gap-2 text-2xl font-bold text-slate-900 mb-2">
                 Miễn phí
               </div>
-              <Button size="lg" className="w-full text-lg font-bold rounded-xl shadow-lg shadow-primary/20">
-                Bắt đầu học ngay
-              </Button>
+              <EnrollButton 
+                courseId={id} 
+                isEnrolled={isEnrolled} 
+                firstLessonId={course.lessons.length > 0 ? [...course.lessons].sort((a, b) => a.order - b.order)[0].id : undefined} 
+              />
               <p className="text-center text-xs text-slate-400 mt-4">
                 Hoàn thành khóa học để nhận chứng chỉ
               </p>

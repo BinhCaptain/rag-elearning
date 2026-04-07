@@ -23,11 +23,12 @@ let LessonsService = class LessonsService {
             orderBy: { order: 'asc' },
         });
     }
-    async findOne(id) {
+    async findOne(id, userId) {
         const lesson = await this.prisma.lesson.findUnique({
             where: { id },
             include: {
                 quizzes: { select: { id: true } },
+                progress: userId ? { where: { userId } } : undefined,
                 course: {
                     include: {
                         lessons: {
@@ -44,12 +45,42 @@ let LessonsService = class LessonsService {
         const currentIndex = courseLessons.findIndex((l) => l.id === id);
         const prevLessonId = currentIndex > 0 ? courseLessons[currentIndex - 1].id : null;
         const nextLessonId = currentIndex < courseLessons.length - 1 ? courseLessons[currentIndex + 1].id : null;
-        const { course, ...lessonData } = lesson;
+        const isCompleted = lesson.progress ? lesson.progress.length > 0 && lesson.progress[0].status === 'COMPLETED' : false;
+        const { course, progress, ...lessonData } = lesson;
         return {
             ...lessonData,
             prevLessonId,
             nextLessonId,
+            isCompleted,
         };
+    }
+    async toggleProgress(lessonId, userId) {
+        const progress = await this.prisma.progress.findUnique({
+            where: {
+                userId_lessonId: { userId, lessonId }
+            }
+        });
+        if (progress && progress.status === 'COMPLETED') {
+            return this.prisma.progress.update({
+                where: { id: progress.id },
+                data: { status: 'IN_PROGRESS', completedAt: null }
+            });
+        }
+        return this.prisma.progress.upsert({
+            where: {
+                userId_lessonId: { userId, lessonId }
+            },
+            create: {
+                userId,
+                lessonId,
+                status: 'COMPLETED',
+                completedAt: new Date(),
+            },
+            update: {
+                status: 'COMPLETED',
+                completedAt: new Date(),
+            }
+        });
     }
     async create(dto) {
         const { quiz, ...lessonData } = dto;

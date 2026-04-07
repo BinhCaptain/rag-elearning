@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, ArrowRight, BrainCircuit, RotateCcw, ChevronLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import { toast } from "sonner";
 
 interface Option {
   id: string;
@@ -29,6 +32,7 @@ interface Quiz {
 
 export default function QuizPage() {
   const params = useParams();
+  const router = useRouter();
   const { id: courseId, lessonId, quizId } = params;
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
@@ -90,14 +94,25 @@ export default function QuizPage() {
     } else {
       setIsFinished(true);
       try {
+        const token = Cookies.get("token");
         const answersArray = quiz.questions.map(q => answers[q.id] || "");
-        await fetch(`http://localhost:3001/api/v1/quizzes/${quizId}/submit`, {
+        
+        const res = await fetch(`http://localhost:3001/api/v1/quizzes/${quizId}/submit`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({ answers: answersArray }),
         });
+
+        if (!res.ok) throw new Error("Nộp bài thất bại");
+        
+        const result = await res.json();
+        toast.success(`Nộp bài thành công! Bạn đạt ${result.score}/${result.totalQuestions}`);
       } catch (err) {
         console.error("Lỗi nộp bài trắc nghiệm", err);
+        toast.error("Không thể ghi lại kết quả bài tập. Vui lòng thử lại.");
       }
     }
   };

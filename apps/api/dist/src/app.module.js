@@ -16,12 +16,14 @@ const auth_module_1 = require("./auth/auth.module");
 const courses_module_1 = require("./courses/courses.module");
 const lessons_module_1 = require("./lessons/lessons.module");
 const quizzes_module_1 = require("./quizzes/quizzes.module");
+const chat_module_1 = require("./chat/chat.module");
+const dashboard_module_1 = require("./dashboard/dashboard.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, users_module_1.UsersModule, auth_module_1.AuthModule, courses_module_1.CoursesModule, lessons_module_1.LessonsModule, quizzes_module_1.QuizzesModule],
+        imports: [prisma_module_1.PrismaModule, users_module_1.UsersModule, auth_module_1.AuthModule, courses_module_1.CoursesModule, lessons_module_1.LessonsModule, quizzes_module_1.QuizzesModule, chat_module_1.ChatModule, dashboard_module_1.DashboardModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })

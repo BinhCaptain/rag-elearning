@@ -3,7 +3,17 @@ import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 export declare class CoursesController {
     private readonly coursesService;
     constructor(coursesService: CoursesService);
-    findAll(isAdmin?: string): import("@prisma/client").Prisma.PrismaPromise<({
+    findAll(isAdmin?: string, req?: any): Promise<({
+        lessons: {
+            id: string;
+            title: string;
+            createdAt: Date;
+            updatedAt: Date;
+            courseId: string;
+            content: string | null;
+            videoUrl: string | null;
+            order: number;
+        }[];
         _count: {
             lessons: number;
         };
@@ -15,7 +25,19 @@ export declare class CoursesController {
         isPublished: boolean;
         createdAt: Date;
         updatedAt: Date;
-    })[]>;
+    })[] | {
+        progressPercentage: number;
+        _count: {
+            lessons: number;
+        };
+        id: string;
+        title: string;
+        description: string | null;
+        level: string | null;
+        isPublished: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+    }[]>;
     findOne(id: string): Promise<{
         lessons: ({
             quizzes: {
@@ -26,10 +48,10 @@ export declare class CoursesController {
             title: string;
             createdAt: Date;
             updatedAt: Date;
-            order: number;
             courseId: string;
             content: string | null;
             videoUrl: string | null;
+            order: number;
         })[];
     } & {
         id: string;

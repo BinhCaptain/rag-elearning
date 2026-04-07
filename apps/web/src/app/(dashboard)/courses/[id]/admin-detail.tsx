@@ -6,8 +6,10 @@ import { Separator } from "@/components/ui/separator";
 import { BookOpen, PlayCircle, Plus, Edit, Trash, ArrowLeft, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { CreateLessonModal } from "@/components/courses/create-lesson-modal";
+import { CreateCourseModal } from "@/components/courses/create-course-modal";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ChevronUp, ChevronDown, Settings, Trash2, ArrowRight } from "lucide-react";
 
 interface Lesson {
   id: string;
@@ -34,7 +36,11 @@ interface AdminCourseDetailPageProps {
 export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageProps) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditCourseOpen, setIsEditCourseOpen] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [lessons, setLessons] = useState<Lesson[]>(
+    [...course.lessons].sort((a, b) => a.order - b.order)
+  );
 
   const handleEditClick = (lesson: Lesson) => {
     setSelectedLesson(lesson);
@@ -49,6 +55,10 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
   const handleDelete = async (lessonId: string) => {
     if (!confirm("Bạn có chắc chắn muốn xóa bài học này không?")) return;
 
+    // Optimistic update
+    const previousLessons = [...lessons];
+    setLessons(lessons.filter(l => l.id !== lessonId));
+
     try {
       const res = await fetch(`http://localhost:3001/api/v1/lessons/${lessonId}`, {
         method: "DELETE",
@@ -57,10 +67,48 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
       if (!res.ok) throw new Error("Failed to delete lesson");
       
       toast.success("Đã xóa bài học!");
-      router.refresh();
     } catch (error) {
       console.error(error);
+      setLessons(previousLessons);
       toast.error("Lỗi khi xóa bài học.");
+    }
+  };
+
+  const handleMove = async (index: number, direction: 'up' | 'down') => {
+    const newLessons = [...lessons];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex < 0 || targetIndex >= newLessons.length) return;
+
+    // Swap
+    const temp = newLessons[index];
+    newLessons[index] = newLessons[targetIndex];
+    newLessons[targetIndex] = temp;
+
+    // Update orders
+    const updatedLessons = newLessons.map((l, i) => ({ ...l, order: i + 1 }));
+    setLessons(updatedLessons);
+
+    try {
+      // For simplicity, we just send the updated orders to the server
+      // In a real app, you might have a bulk update endpoint
+      await Promise.all([
+        fetch(`http://localhost:3001/api/v1/lessons/${updatedLessons[index].id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: updatedLessons[index].order }),
+        }),
+        fetch(`http://localhost:3001/api/v1/lessons/${updatedLessons[targetIndex].id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: updatedLessons[targetIndex].order }),
+        })
+      ]);
+      toast.success("Đã cập nhật thứ tự!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi khi cập nhật thứ tự.");
+      setLessons(lessons); // Revert
     }
   };
   
@@ -85,10 +133,41 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
     }
   };
 
+  const handleDeleteCourse = async () => {
+    if (!confirm("Bạn có chắc chắn muốn xóa khóa học này? Hành động này không thể hoàn tác.")) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:3001/api/v1/courses/${course.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete course");
+
+      toast.success("Đã xóa khóa học thành công");
+      router.push("/dashboard/courses");
+      router.refresh();
+    } catch (error) {
+      toast.error("Không thể xóa khóa học");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [loading, setLoading] = useState(false);
 
   return (
-    <div className="flex flex-col gap-8 pb-12 animate-fade-in-up">
+    <div className="flex flex-col min-h-screen bg-slate-50 p-6 md:p-10 gap-8 animate-fade-in">
+      <CreateCourseModal 
+        open={isEditCourseOpen} 
+        onOpenChange={setIsEditCourseOpen} 
+        initialData={{
+          id: course.id,
+          title: course.title,
+          description: course.description,
+          level: course.level
+        }}
+      />
       {/* Breadcrumbs / Back button */}
       <Link href="/courses" className="flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors group w-fit">
         <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
@@ -115,6 +194,14 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
           <p className="text-slate-500 mt-2 max-w-2xl">{course.description}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
+          <Button variant="outline" className="gap-2" onClick={() => setIsEditCourseOpen(true)}>
+            <Settings className="h-4 w-4" />
+            Sửa khóa học
+          </Button>
+          <Button variant="outline" className="gap-2 text-destructive border-destructive/20 hover:bg-destructive/5" onClick={handleDeleteCourse}>
+            <Trash2 className="h-4 w-4" />
+            Xóa khóa học
+          </Button>
           <Button 
             variant="outline" 
             className={`${course.isPublished ? "text-slate-600" : "text-green-600 border-green-200 hover:bg-green-50"} gap-2`}
@@ -139,14 +226,34 @@ export default function AdminCourseDetailPage({ course }: AdminCourseDetailPageP
         </div>
         
         <div className="grid gap-3">
-          {course.lessons.length === 0 ? (
+          {lessons.length === 0 ? (
             <div className="text-center py-12 text-slate-500 bg-slate-50 border border-slate-100 rounded-2xl">
               Chưa có bài học nào. Bấm "Thêm bài học mới" để bắt đầu.
             </div>
           ) : (
-            course.lessons.sort((a, b) => a.order - b.order).map((lesson, index) => (
+            lessons.map((lesson, index) => (
               <div key={lesson.id} className="group flex flex-col md:flex-row md:items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-primary/40 transition-all duration-300 shadow-sm">
                 <div className="flex items-center gap-4 flex-1">
+                  <div className="flex flex-col gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6" 
+                      disabled={index === 0}
+                      onClick={() => handleMove(index, 'up')}
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6" 
+                      disabled={index === lessons.length - 1}
+                      onClick={() => handleMove(index, 'down')}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-500">
                     {lesson.order}
                   </div>

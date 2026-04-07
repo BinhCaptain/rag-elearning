@@ -16,6 +16,7 @@ exports.LessonsController = void 0;
 const common_1 = require("@nestjs/common");
 const lessons_service_1 = require("./lessons.service");
 const lesson_dto_1 = require("./dto/lesson.dto");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 let LessonsController = class LessonsController {
     lessonsService;
     constructor(lessonsService) {
@@ -24,8 +25,11 @@ let LessonsController = class LessonsController {
     findByCourse(courseId) {
         return this.lessonsService.findByCourse(courseId);
     }
-    findOne(id) {
-        return this.lessonsService.findOne(id);
+    findOne(id, req) {
+        return this.lessonsService.findOne(id, req.user?.id);
+    }
+    toggleProgress(id, req) {
+        return this.lessonsService.toggleProgress(id, req.user.id);
     }
     create(dto) {
         return this.lessonsService.create(dto);
@@ -47,11 +51,22 @@ __decorate([
 ], LessonsController.prototype, "findByCourse", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], LessonsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Post)(':id/progress'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], LessonsController.prototype, "toggleProgress", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

@@ -17,12 +17,33 @@ let CoursesService = class CoursesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    findAll(isAdmin = false) {
-        return this.prisma.course.findMany({
+    async findAll(isAdmin = false, userId) {
+        const courses = await this.prisma.course.findMany({
             where: isAdmin ? {} : { isPublished: true },
             orderBy: { createdAt: 'desc' },
-            include: { _count: { select: { lessons: true } } },
+            include: {
+                _count: { select: { lessons: true } },
+                lessons: userId ? {
+                    select: {
+                        id: true,
+                        progress: {
+                            where: { userId, status: 'COMPLETED' },
+                            select: { id: true }
+                        }
+                    }
+                } : false
+            },
         });
+        if (userId) {
+            return courses.map(course => {
+                const totalLessons = course._count.lessons;
+                const completedLessons = course.lessons.reduce((acc, lesson) => acc + (lesson.progress.length > 0 ? 1 : 0), 0);
+                const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+                const { lessons, ...courseData } = course;
+                return { ...courseData, progressPercentage };
+            });
+        }
+        return courses;
     }
     async findOne(id) {
         const course = await this.prisma.course.findUnique({

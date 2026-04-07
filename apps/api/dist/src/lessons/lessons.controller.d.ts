@@ -4,58 +4,66 @@ export declare class LessonsController {
     private readonly lessonsService;
     constructor(lessonsService: LessonsService);
     findByCourse(courseId: string): import("@prisma/client").Prisma.PrismaPromise<{
-        content: string | null;
-        title: string;
-        courseId: string;
-        videoUrl: string | null;
-        order: number;
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        videoUrl: string | null;
+        order: number;
+        courseId: string;
     }[]>;
-    findOne(id: string): Promise<{
+    findOne(id: string, req: any): Promise<{
         prevLessonId: string | null;
         nextLessonId: string | null;
+        isCompleted: boolean;
         quizzes: {
             id: string;
         }[];
-        content: string | null;
-        title: string;
-        courseId: string;
-        videoUrl: string | null;
-        order: number;
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        videoUrl: string | null;
+        order: number;
+        courseId: string;
+    }>;
+    toggleProgress(id: string, req: any): Promise<{
+        id: string;
+        userId: string;
+        status: import("@prisma/client").$Enums.ProgressStatus;
+        completedAt: Date | null;
+        lessonId: string;
     }>;
     create(dto: CreateLessonDto): Promise<{
-        content: string | null;
-        title: string;
-        courseId: string;
-        videoUrl: string | null;
-        order: number;
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        videoUrl: string | null;
+        order: number;
+        courseId: string;
     }>;
     update(id: string, dto: UpdateLessonDto): Promise<{
-        content: string | null;
-        title: string;
-        courseId: string;
-        videoUrl: string | null;
-        order: number;
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        videoUrl: string | null;
+        order: number;
+        courseId: string;
     }>;
     remove(id: string): Promise<{
-        content: string | null;
-        title: string;
-        courseId: string;
-        videoUrl: string | null;
-        order: number;
         id: string;
+        title: string;
         createdAt: Date;
         updatedAt: Date;
+        content: string | null;
+        videoUrl: string | null;
+        order: number;
+        courseId: string;
     }>;
 }

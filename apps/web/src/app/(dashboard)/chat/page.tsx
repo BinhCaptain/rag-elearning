@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BrainCircuit, Send, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { BrainCircuit, Send, Sparkles, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import Cookies from "js-cookie";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -25,28 +27,57 @@ const mockMessages: Message[] = [
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages, isTyping]);
+
+  const handleSend = async () => {
     if (!input.trim()) return;
-
-    const newMessage: Message = {
+    const currentInput = input;
+    const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: input,
+      content: currentInput,
     };
 
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setIsTyping(true);
 
-    // Simulate AI thinking and responding
-    setTimeout(() => {
-      const aiResponse: Message = {
+    try {
+      const token = Cookies.get("token");
+      const res = await fetch("http://localhost:3001/api/v1/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: currentInput
+        })
+      });
+
+      if (!res.ok) throw new Error("AI đang bận, vui lòng thử lại sau.");
+
+      const data = await res.json();
+      setMessages((prev) => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Đây là câu trả lời mô phỏng từ AI dựa trên tài liệu bài học. (RAG Engine sẽ được tích hợp ở Phase sau).",
-      };
-      setMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
+        content: data.content
+      }]);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
@@ -111,9 +142,10 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="flex-1 bg-white"
+              disabled={isTyping}
             />
-            <Button type="submit" size="icon" disabled={!input.trim()}>
-              <Send className="h-4 w-4" />
+            <Button type="submit" size="icon" disabled={!input.trim() || isTyping}>
+              {isTyping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               <span className="sr-only">Gửi tin nhắn</span>
             </Button>
           </form>
