@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -10,6 +11,28 @@ async function main() {
   await prisma.quiz.deleteMany();
   await prisma.lesson.deleteMany();
   await prisma.course.deleteMany();
+  await prisma.user.deleteMany();
+
+  const passwordHash = await bcrypt.hash('123456', 10);
+
+  // Create Users
+  await prisma.user.create({
+    data: {
+      email: 'admin@gmail.com',
+      name: 'Hệ thống Admin',
+      passwordHash,
+      role: 'ADMIN',
+    }
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'student@gmail.com',
+      name: 'Nguyễn Văn Học',
+      passwordHash,
+      role: 'STUDENT',
+    }
+  });
 
   // Create Courses
   const course1 = await prisma.course.create({

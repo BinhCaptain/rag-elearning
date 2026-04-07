@@ -1,0 +1,2 @@
+﻿src/enrollments/enrollments.service.ts(18,40): error TS2339: Property 'enrollment' does not exist on type 'PrismaService'.
+src/enrollments/enrollments.service.ts(31,24): error TS2339: Property 'enrollment' does not exist on type 'PrismaService'.

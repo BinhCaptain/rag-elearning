@@ -11,6 +11,8 @@ import { LessonsModule } from './lessons/lessons.module';
 import { QuizzesModule } from './quizzes/quizzes.module';
 import { ChatModule } from './chat/chat.module';
 import { IngestionModule } from './ingestion/ingestion.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { EnrollmentsModule } from './enrollments/enrollments.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { IngestionModule } from './ingestion/ingestion.module';
     QuizzesModule,
     ChatModule,
     IngestionModule,
+    DashboardModule,
+    EnrollmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

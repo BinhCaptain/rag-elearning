@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { LessonsService } from './lessons.service';
 import { CreateLessonDto, UpdateLessonDto } from './dto/lesson.dto';
@@ -23,8 +24,15 @@ export class LessonsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.lessonsService.findOne(id);
+  @UseGuards(JwtAuthGuard)
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.lessonsService.findOne(id, req.user?.id);
+  }
+
+  @Post(':id/progress')
+  @UseGuards(JwtAuthGuard)
+  toggleProgress(@Param('id') id: string, @Req() req: any) {
+    return this.lessonsService.toggleProgress(id, req.user.id);
   }
 
   // @UseGuards(JwtAuthGuard)

@@ -18,9 +18,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(@Query('isAdmin') isAdmin?: string) {
-    return this.coursesService.findAll(isAdmin === 'true');
+  async findAll(@Query('onlyEnrolled') onlyEnrolled: string, @Request() req: any) {
+    const isOnlyEnrolled = onlyEnrolled === 'true';
+    return this.coursesService.findAll(req.user.id, false, isOnlyEnrolled);
   }
 
   @Get(':id')
