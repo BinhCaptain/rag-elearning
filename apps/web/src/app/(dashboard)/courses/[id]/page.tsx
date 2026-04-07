@@ -20,6 +20,7 @@ interface Course {
   title: string;
   description: string;
   level: string;
+  isPublished: boolean;
   lessons: Lesson[];
 }
 

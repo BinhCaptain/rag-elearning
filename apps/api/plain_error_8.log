@@ -1,0 +1,89 @@
+﻿node : C:\Users\Admin\Docu
+ments\GitHub\rag-elearning
+\node_modules\.pnpm\@nestj
+s+mongoose@11.0.4_@ne_c482
+c38485500244285b6f82ce7b69
+6f\node_modules\@nestjs\mo
+ngoose\dist\decorators\pro
+p.decorator.js:21
+At line:1 char:1
++ node dist/src/main.js > 
+error.log 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (C  
+  :\Users\Admin\...deco   
+ rator.js:21:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+                throw new 
+errors_1.CannotDetermineTy
+peError(target.constructor
+?.name, propertyKey);
+                ^
+
+CannotDetermineTypeError: 
+Cannot determine a type 
+for the 
+"ChatSession.lesson_id" 
+field (union/intersection/
+ambiguous type was used). 
+Make sure your property 
+is decorated with a 
+"@Prop({ type: TYPE_HERE 
+})" decorator.
+    at C:\Users\Admin\Docu
+ments\GitHub\rag-elearning
+\node_modules\.pnpm\@nestj
+s+mongoose@11.0.4_@ne_c482
+c38485500244285b6f82ce7b69
+6f\node_modules\@nestjs\mo
+ngoose\dist\decorators\pro
+p.decorator.js:21:23
+    at DecorateProperty (C
+:\Users\Admin\Documents\Gi
+tHub\rag-elearning\node_mo
+dules\.pnpm\reflect-metada
+ta@0.2.2\node_modules\refl
+ect-metadata\Reflect.js:56
+1:33)
+    at Reflect.decorate (C
+:\Users\Admin\Documents\Gi
+tHub\rag-elearning\node_mo
+dules\.pnpm\reflect-metada
+ta@0.2.2\node_modules\refl
+ect-metadata\Reflect.js:13
+6:24)
+    at __decorate (C:\User
+s\Admin\Documents\GitHub\r
+ag-elearning\apps\api\dist
+\src\chat\schemas\chat-ses
+sion.schema.js:4:92)
+    at Object.<anonymous> 
+(C:\Users\Admin\Documents\
+GitHub\rag-elearning\apps\
+api\dist\src\chat\schemas\
+chat-session.schema.js:24:
+1)
+    at Module._compile (no
+de:internal/modules/cjs/lo
+ader:1730:14)
+    at Object..js (node:in
+ternal/modules/cjs/loader:
+1895:10)
+    at Module.load (node:i
+nternal/modules/cjs/loader
+:1465:32)
+    at Function._load (nod
+e:internal/modules/cjs/loa
+der:1282:12)
+    at 
+TracingChannel.traceSync (
+node:diagnostics_channel:3
+22:14)
+
+Node.js v22.16.0

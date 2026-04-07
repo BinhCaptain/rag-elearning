@@ -5,61 +5,94 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BrainCircuit, Send, Sparkles } from "lucide-react";
+import { BrainCircuit, Send, Sparkles, Plus, Loader2, BookOpen } from "lucide-react";
 import { useState } from "react";
+import { useChat } from "@/hooks/use-chat";
+import type { ChatSource } from "@/lib/chat-api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
+function SourcesBadge({ sources }: { sources: ChatSource[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!sources || sources.length === 0) return null;
+
+  return (
+    <div className="mt-2">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="inline-flex items-center gap-1 text-xs text-primary/70 hover:text-primary transition-colors"
+      >
+        <BookOpen className="h-3 w-3" />
+        {sources.length} nguồn tham khảo
+        <span className="text-[10px]">{expanded ? "▲" : "▼"}</span>
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-1.5 animate-fade-in-up">
+          {sources.map((s, i) => (
+            <div
+              key={i}
+              className="text-xs bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-slate-600"
+            >
+              <span className="font-medium text-primary/80">[{i + 1}]</span>{" "}
+              {s.chunk_text.slice(0, 150)}
+              {s.chunk_text.length > 150 && "..."}
+              <span className="ml-2 text-slate-400">
+                ({Math.round(s.score * 100)}%)
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-const mockMessages: Message[] = [
-  {
-    id: "1",
-    role: "assistant",
-    content: "Chào bạn! Mình là AI Trợ giảng của E-learning. Mình có thể giúp gì cho bạn trong bài học hôm nay?",
-  },
-];
+function TypingIndicator() {
+  return (
+    <div className="flex items-center gap-1 px-3 py-2">
+      <div className="flex gap-1">
+        <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:0ms]" />
+        <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:150ms]" />
+        <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce [animation-delay:300ms]" />
+      </div>
+      <span className="text-xs text-slate-400 ml-2">AI đang suy nghĩ...</span>
+    </div>
+  );
+}
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const { messages, isLoading, send, newSession, scrollRef } = useChat();
   const [input, setInput] = useState("");
 
   const handleSend = () => {
-    if (!input.trim()) return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
+    if (!input.trim() || isLoading) return;
+    send(input);
     setInput("");
-
-    // Simulate AI thinking and responding
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "Đây là câu trả lời mô phỏng từ AI dựa trên tài liệu bài học. (RAG Engine sẽ được tích hợp ở Phase sau).",
-      };
-      setMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] animate-fade-in-up">
-      <div className="mb-4">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-          AI Trợ giảng <Sparkles className="h-6 w-6 text-primary" />
-        </h1>
-        <p className="text-slate-500 mt-1">Hỏi đáp mọi thắc mắc về ngữ pháp, từ vựng hoặc khóa học.</p>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            AI Trợ giảng <Sparkles className="h-6 w-6 text-primary" />
+          </h1>
+          <p className="text-slate-500 mt-1">Hỏi đáp mọi thắc mắc về ngữ pháp, từ vựng hoặc khóa học.</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={newSession}
+          className="gap-1.5"
+        >
+          <Plus className="h-4 w-4" />
+          Cuộc trò chuyện mới
+        </Button>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden border-slate-200">
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <div className="flex flex-col gap-6">
             {messages.map((message) => (
               <div
@@ -83,15 +116,31 @@ export default function ChatPage() {
                     </>
                   )}
                 </Avatar>
-                
-                <div
-                  className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-tr-sm"
-                      : "bg-white border border-slate-200 text-slate-700 rounded-tl-sm"
-                  }`}
-                >
-                  {message.content}
+
+                <div>
+                  <div
+                    className={`rounded-2xl px-5 py-3.5 text-sm shadow-sm max-w-full overflow-x-auto ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                        : "bg-white border border-slate-200 text-slate-700 rounded-tl-sm prose prose-sm prose-slate max-w-none"
+                    }`}
+                  >
+                    {message.isLoading ? (
+                      <TypingIndicator />
+                    ) : message.role === "assistant" ? (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <span className="whitespace-pre-wrap">{message.content}</span>
+                    )}
+                  </div>
+
+                  {message.role === "assistant" &&
+                    message.sources &&
+                    message.sources.length > 0 && (
+                      <SourcesBadge sources={message.sources} />
+                    )}
                 </div>
               </div>
             ))}
@@ -111,9 +160,14 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="flex-1 bg-white"
+              disabled={isLoading}
             />
-            <Button type="submit" size="icon" disabled={!input.trim()}>
-              <Send className="h-4 w-4" />
+            <Button type="submit" size="icon" disabled={!input.trim() || isLoading}>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
               <span className="sr-only">Gửi tin nhắn</span>
             </Button>
           </form>

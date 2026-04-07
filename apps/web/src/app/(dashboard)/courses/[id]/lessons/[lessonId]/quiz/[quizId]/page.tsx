@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, XCircle, ArrowRight, BrainCircuit, RotateCcw, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { useParams } from "next/navigation";
 
 interface Option {

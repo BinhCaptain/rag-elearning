@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, BrainCircuit, CheckCircle, ChevronLeft, MessageSquare, PlayCircle } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { InlineChat } from "./inline-chat";
 
 export default function LessonPage({ params }: { params: { id: string } }) {
   // Mock data for UI
@@ -97,32 +98,8 @@ export default function LessonPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Sidebar / Sidebar AI Chat (Desktop Only for Layout) */}
-        <aside className="w-full lg:w-80 xl:w-96 border-l border-slate-200 bg-white flex flex-col sticky top-14 self-start" style={{ height: 'calc(100vh - 3.5rem)' }}>
-          <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
-            <BrainCircuit className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-slate-900">Hỏi đáp cùng AI</h3>
-          </div>
-          <div className="flex-1 p-4 overflow-auto flex flex-col gap-4">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm">
-              <p className="text-slate-600 mb-3">Bạn có câu hỏi nào về Thì Hiện Tại Đơn không? Hãy hỏi mình nhé!</p>
-              <div className="flex flex-col gap-2">
-                <button className="text-left bg-white border border-slate-200 p-2 rounded-lg text-slate-700 hover:border-primary hover:text-primary transition-colors text-xs font-medium">
-                  "Khi nào thêm 's', khi nào thêm 'es'?"
-                </button>
-                <button className="text-left bg-white border border-slate-200 p-2 rounded-lg text-slate-700 hover:border-primary hover:text-primary transition-colors text-xs font-medium">
-                  "Cho mình 5 bài tập ví dụ."
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="p-4 border-t border-slate-200">
-             <Button className="w-full justify-start text-slate-500 bg-slate-100 hover:bg-slate-200 hover:text-slate-900" variant="secondary">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Nhập câu hỏi...
-             </Button>
-          </div>
-        </aside>
+        {/* Sidebar / Sidebar AI Chat */}
+        <InlineChat lessonId={params.id} />
 
       </div>
     </div>

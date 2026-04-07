@@ -31,6 +31,7 @@ const adminMenuItems = [
   { title: "Tổng quan Admin", url: "/dashboard", icon: LineChart },
   { title: "Quản lý Khóa học", url: "/courses", icon: BookOpen },
   { title: "Quản lý AI Chatbot", url: "/chat", icon: BrainCircuit },
+  { title: "Dữ liệu AI RAG", url: "/ingestion", icon: Settings },
 ];
 
 import {
