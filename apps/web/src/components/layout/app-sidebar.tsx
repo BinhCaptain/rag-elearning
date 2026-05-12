@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, BrainCircuit, LineChart, LogOut, Settings, User } from "lucide-react";
+import { BookOpen, BrainCircuit, LineChart, LogOut, Settings, User, FileText, Users } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { UserProfile } from "@/lib/auth";
 
@@ -30,8 +30,10 @@ const studentMenuItems = [
 const adminMenuItems = [
   { title: "Tổng quan Admin", url: "/dashboard", icon: LineChart },
   { title: "Quản lý Khóa học", url: "/courses", icon: BookOpen },
-  { title: "Quản lý AI Chatbot", url: "/chat", icon: BrainCircuit },
+  { title: "Quản lý Users", url: "/admin/users", icon: Users },
+  { title: "Lịch sử Chat AI", url: "/chat", icon: BrainCircuit },
   { title: "Dữ liệu AI RAG", url: "/ingestion", icon: Settings },
+  { title: "Tạo Đề AI", url: "/ai-exam", icon: FileText },
 ];
 
 import {
@@ -143,14 +145,12 @@ export function AppSidebar({ user }: { user: UserProfile }) {
                   </DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer gap-2 py-2">
-                  <Sparkles className="h-4 w-4 text-amber-500" />
-                  Nâng cấp Pro
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer gap-2 py-2">
-                  <User className="h-4 w-4 text-slate-500" />
-                  Hồ sơ cá nhân
-                </DropdownMenuItem>
+                <Link href="/profile">
+                  <DropdownMenuItem className="cursor-pointer gap-2 py-2">
+                    <User className="h-4 w-4 text-slate-500" />
+                    Hồ sơ cá nhân
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem className="cursor-pointer gap-2 py-2">
                   <Settings className="h-4 w-4 text-slate-500" />
                   Cài đặt

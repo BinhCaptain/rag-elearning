@@ -21,8 +21,10 @@ export class ChatService {
     @InjectModel(ChatMessage.name) private messageModel: Model<ChatMessageDocument>,
     private readonly configService: ConfigService,
   ) {
+    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
     this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+      apiKey: geminiKey || this.configService.get<string>('OPENAI_API_KEY'),
+      baseURL: geminiKey ? 'https://generativelanguage.googleapis.com/v1beta/openai/' : undefined,
     });
 
     this.qdrant = new QdrantClient({
@@ -165,6 +167,36 @@ export class ChatService {
       .exec();
   }
 
+  // ─── Admin Methods ────────────────────────────────────────────────────────────
+
+  async getAllSessions(page: number = 1, limit: number = 50) {
+    const sessions = await this.sessionModel
+      .find()
+      .sort({ updated_at: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return sessions;
+  }
+
+  async getAdminSessionMessages(sessionId: string) {
+    return this.messageModel
+      .find({ session_id: new Types.ObjectId(sessionId) })
+      .sort({ created_at: 1 })
+      .lean()
+      .exec();
+  }
+
+  async deleteSessionByAdmin(sessionId: string): Promise<boolean> {
+    const session = await this.sessionModel.findById(new Types.ObjectId(sessionId));
+    if (!session) return false;
+    await this.messageModel.deleteMany({ session_id: session._id });
+    await this.sessionModel.deleteOne({ _id: session._id });
+    return true;
+  }
+
   // ─── Helpers ─────────────────────────────────────────────────────────────────
 
   private async getOrCreateSession(
@@ -188,23 +220,24 @@ export class ChatService {
   }
 
   private async embedText(text: string): Promise<number[]> {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY') || this.configService.get<string>('OPENAI_API_KEY') || '';
     if (apiKey.includes('your-openai') || apiKey === '') {
-      return Array(1536).fill(0.1);
+      return Array(3072).fill(0.1);
     }
     const response = await this.openai.embeddings.create({
-      model: 'text-embedding-3-small',
+      model: this.configService.get<string>('GEMINI_API_KEY') ? 'gemini-embedding-001' : 'text-embedding-3-small',
       input: text,
     });
     return response.data[0].embedding;
   }
 
   private buildSystemPrompt(context: string): string {
-    const basePrompt = `Bạn là AI Trợ giảng của hệ thống E-Learning học tiếng Anh. 
-Nhiệm vụ của bạn là giúp học sinh hiểu ngữ pháp, từ vựng và nội dung bài học.
-Trả lời bằng tiếng Việt, rõ ràng, thân thiện và có ví dụ cụ thể khi cần.
-Khi giải thích đáp án, hãy nói rõ: đáp án đúng là gì, vì sao đúng, và vì sao các đáp án khác sai.
-Sử dụng markdown khi cần format (bold, list, code block) để câu trả lời dễ đọc hơn.`;
+    const basePrompt = `Bạn là AI Trợ giảng của hệ thống E-Learning học tiếng Anh.
+Tuyệt đối tuân thủ các quy tắc sau:
+1. CHỈ trả lời các chủ đề liên quan đến việc học tiếng Anh. Từ chối lịch sự nếu được hỏi về chủ đề ngoài lề.
+2. Trả lời NGẮN GỌN, đi thẳng vào vấn đề chính, đủ ý nhưng KHÔNG được quá dài. Chỉ giải thích thêm chi tiết nếu người dùng có yêu cầu rõ ràng.
+3. Nếu đó là câu hỏi trắc nghiệm/bài tập, hãy trả lời cực kỳ ngắn gọn theo format: 1 câu đáp án, 1 câu giải thích.
+4. Trả lời bằng tiếng Việt, rõ ràng, thân thiện. Sử dụng markdown để format.`;
 
     if (!context) return basePrompt;
 
@@ -214,14 +247,14 @@ Dưới đây là tài liệu bài học liên quan:
 ---
 ${context}
 ---
-Hãy ưu tiên dùng thông tin từ tài liệu trên để trả lời. Nếu tài liệu không đủ, hãy dùng kiến thức của bạn nhưng lưu ý rõ rằng đó là kiến thức bổ sung.`;
+Hãy ưu tiên dùng thông tin từ tài liệu trên để trả lời câu hỏi tiếng Anh một cách ngắn gọn nhất.`;
   }
 
   private async callOpenAI(
     systemPrompt: string,
     conversationHistory: any[],
   ): Promise<string> {
-    const apiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY') || this.configService.get<string>('OPENAI_API_KEY') || '';
     if (apiKey.includes('your-openai') || apiKey === '') {
       await new Promise(r => setTimeout(r, 1500));
       const lastContent = conversationHistory.length > 0 ? conversationHistory[conversationHistory.length - 1].content : "Xin chào";
@@ -241,7 +274,7 @@ Hãy ưu tiên dùng thông tin từ tài liệu trên để trả lời. Nếu 
     }
 
     const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: this.configService.get<string>('GEMINI_API_KEY') ? 'gemini-2.5-flash' : 'gpt-4o-mini',
       messages,
       max_tokens: 1500,
       temperature: 0.7,

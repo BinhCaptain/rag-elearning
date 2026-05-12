@@ -32,8 +32,10 @@ export class IngestionService implements OnModuleInit {
     private readonly docModel: Model<IngestionDocumentDocument>,
     private readonly configService: ConfigService,
   ) {
+    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
     this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+      apiKey: geminiKey || this.configService.get<string>('OPENAI_API_KEY'),
+      baseURL: geminiKey ? 'https://generativelanguage.googleapis.com/v1beta/openai/' : undefined,
     });
     this.qdrant = new QdrantClient({
       url: this.configService.get<string>('QDRANT_URL', 'http://localhost:6333'),
@@ -52,8 +54,9 @@ export class IngestionService implements OnModuleInit {
         (c) => c.name === this.collectionName,
       );
       if (!exists) {
+        const vectorSize = this.configService.get<string>('GEMINI_API_KEY') ? 3072 : 1536;
         await this.qdrant.createCollection(this.collectionName, {
-          vectors: { size: 1536, distance: 'Cosine' },
+          vectors: { size: vectorSize, distance: 'Cosine' },
         });
         this.logger.log(`Created Qdrant collection: ${this.collectionName}`);
       }
@@ -184,7 +187,7 @@ export class IngestionService implements OnModuleInit {
 
       // Embed batch
       const embeddingResp = await this.openai.embeddings.create({
-        model: 'text-embedding-3-small',
+        model: this.configService.get<string>('GEMINI_API_KEY') ? 'gemini-embedding-001' : 'text-embedding-3-small',
         input: batch,
       });
 

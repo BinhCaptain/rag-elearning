@@ -1,29 +1,23 @@
 import {
   Controller,
   Post,
-  Get,
   UseGuards,
   UseInterceptors,
   UploadedFile,
-  Request,
-  Query,
+  Body,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { IngestionService } from './ingestion.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { GeneratorService } from './generator.service';
 
 @UseGuards(JwtAuthGuard)
-@Controller('admin/documents')
-export class IngestionController {
-  constructor(private readonly ingestionService: IngestionService) {}
+@Controller('admin/generator')
+export class GeneratorController {
+  constructor(private readonly generatorService: GeneratorService) {}
 
-  /**
-   * POST /api/v1/admin/documents/upload
-   * Upload tài liệu để RAG ingestion (Admin only)
-   */
-  @Post('upload')
+  @Post('analyze')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
@@ -39,22 +33,24 @@ export class IngestionController {
       },
     }),
   )
-  async uploadDocument(
+  async analyzeExamDraft(
     @UploadedFile() file: Express.Multer.File,
-    @Request() req: any,
-    @Query('lessonId') lessonId?: string,
   ) {
     if (!file) throw new BadRequestException('Không tìm thấy file');
-    const userId = req.user.userId || req.user.sub || req.user.id || 'admin-system';
-    return this.ingestionService.uploadDocument(file, lessonId, userId);
+    
+    return this.generatorService.analyzeAndGenerateDraft(file);
   }
 
-  /**
-   * GET /api/v1/admin/documents
-   * Lấy danh sách documents đã upload
-   */
-  @Get()
-  async getDocuments(@Request() req: any) {
-    return this.ingestionService.getDocuments(req.user.userId);
+  @Post('save')
+  async saveExam(
+    @Body('courseId') courseId: string,
+    @Body('lessonTitle') lessonTitle: string,
+    @Body('examData') examData: any,
+  ) {
+    if (!courseId) throw new BadRequestException('Thiếu courseId');
+    if (!lessonTitle) throw new BadRequestException('Thiếu lessonTitle');
+    if (!examData) throw new BadRequestException('Thiếu examData');
+
+    return this.generatorService.saveExamToDB(courseId, lessonTitle, examData);
   }
 }

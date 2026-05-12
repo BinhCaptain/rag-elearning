@@ -26,18 +26,18 @@ interface Course {
   lessons: Lesson[];
 }
 
-async function getEnrollmentStatus(courseId: string, token?: string): Promise<boolean> {
-  if (!token) return false;
+async function getEnrollmentStatus(courseId: string, token?: string): Promise<{ enrolled: boolean, progress: number }> {
+  if (!token) return { enrolled: false, progress: 0 };
   try {
     const res = await fetch(`http://localhost:3001/api/v1/enrollments/check/${courseId}`, {
       headers: { "Authorization": `Bearer ${token}` },
       cache: "no-store",
     });
-    if (!res.ok) return false;
+    if (!res.ok) return { enrolled: false, progress: 0 };
     const data = await res.json();
-    return data.enrolled;
+    return data;
   } catch {
-    return false;
+    return { enrolled: false, progress: 0 };
   }
 }
 async function getCourse(id: string): Promise<Course | null> {
@@ -54,7 +54,9 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
   const token = cookieStore.get("token")?.value;
   const course = await getCourse(id);
   const user = await getUser();
-  const isEnrolled = await getEnrollmentStatus(id, token);
+  const enrollmentStatus = await getEnrollmentStatus(id, token);
+  const isEnrolled = enrollmentStatus.enrolled;
+  const progress = enrollmentStatus.progress;
 
   if (!course) {
     notFound();
@@ -151,6 +153,7 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
               <EnrollButton 
                 courseId={id} 
                 isEnrolled={isEnrolled} 
+                progress={progress}
                 firstLessonId={course.lessons.length > 0 ? [...course.lessons].sort((a, b) => a.order - b.order)[0].id : undefined} 
               />
               <p className="text-center text-xs text-slate-400 mt-4">

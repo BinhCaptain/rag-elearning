@@ -22,7 +22,8 @@ export class CoursesController {
   @Get()
   async findAll(@Query('onlyEnrolled') onlyEnrolled: string, @Request() req: any) {
     const isOnlyEnrolled = onlyEnrolled === 'true';
-    return this.coursesService.findAll(req.user.id, false, isOnlyEnrolled);
+    const isAdmin = req.user.role === 'ADMIN';
+    return this.coursesService.findAll(req.user.id, isAdmin, isOnlyEnrolled);
   }
 
   @Get(':id')

@@ -13,6 +13,7 @@ import { ChatModule } from './chat/chat.module';
 import { IngestionModule } from './ingestion/ingestion.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
+import { GeneratorModule } from './generator/generator.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
     IngestionModule,
     DashboardModule,
     EnrollmentsModule,
+    GeneratorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

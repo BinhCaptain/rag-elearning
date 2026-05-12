@@ -39,15 +39,55 @@ export class EnrollmentsService {
     });
   }
 
-  async isEnrolled(userId: string, courseId: string) {
-    const enrollment = await (this.prisma as any).enrollment.findUnique({
+  async checkStatus(userId: string, courseId: string) {
+    const enrollment = await this.prisma.enrollment.findUnique({
       where: {
-        userId_courseId: {
-          userId,
-          courseId,
-        },
+        userId_courseId: { userId, courseId },
       },
     });
-    return !!enrollment;
+
+    if (!enrollment) return { enrolled: false, progress: 0 };
+
+    const totalLessons = await this.prisma.lesson.count({
+      where: { courseId },
+    });
+
+    if (totalLessons === 0) return { enrolled: true, progress: 0 };
+
+    const completedProgress = await this.prisma.progress.count({
+      where: {
+        userId,
+        lesson: { courseId },
+        status: 'COMPLETED',
+      },
+    });
+
+    const progress = Math.round((completedProgress / totalLessons) * 100);
+    return { enrolled: true, progress };
+  }
+
+  async getEnrolledUsersByCourse(courseId: string) {
+    return this.prisma.enrollment.findMany({
+      where: { courseId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            role: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async unenroll(userId: string, courseId: string): Promise<void> {
+    await this.prisma.enrollment.deleteMany({
+      where: { userId, courseId },
+    });
   }
 }

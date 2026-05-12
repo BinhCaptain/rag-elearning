@@ -7,13 +7,16 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
+import { Progress } from "@/components/ui/progress";
+
 interface EnrollButtonProps {
   courseId: string;
   isEnrolled: boolean;
+  progress?: number;
   firstLessonId?: string;
 }
 
-export default function EnrollButton({ courseId, isEnrolled, firstLessonId }: EnrollButtonProps) {
+export default function EnrollButton({ courseId, isEnrolled, progress = 0, firstLessonId }: EnrollButtonProps) {
   const [loading, setLoading] = useState(false);
   const [enrolled, setEnrolled] = useState(isEnrolled);
   const router = useRouter();
@@ -54,15 +57,24 @@ export default function EnrollButton({ courseId, isEnrolled, firstLessonId }: En
   if (enrolled) {
     if (!firstLessonId) return null;
     return (
-      <Button 
-        variant="outline" 
-        size="lg" 
-        className="w-full text-lg font-bold rounded-xl border-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all flex items-center gap-2"
-        onClick={() => router.push(`/courses/${courseId}/lessons/${firstLessonId}`)}
-      >
-        <CheckCircle2 className="h-5 w-5" />
-        Vào học ngay
-      </Button>
+      <div className="w-full space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm font-medium">
+            <span className="text-slate-600">Tiến độ học tập</span>
+            <span className="text-primary font-bold">{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-2.5 w-full rounded-full bg-slate-100" />
+        </div>
+        <Button 
+          variant="outline" 
+          size="lg" 
+          className="w-full text-lg font-bold rounded-xl border-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all flex items-center gap-2"
+          onClick={() => router.push(`/courses/${courseId}/lessons/${firstLessonId}`)}
+        >
+          <CheckCircle2 className="h-5 w-5" />
+          Tiếp tục học ngay
+        </Button>
+      </div>
     );
   }
 
