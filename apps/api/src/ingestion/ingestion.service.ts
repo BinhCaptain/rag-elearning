@@ -26,13 +26,20 @@ export class IngestionService implements OnModuleInit {
   private readonly openai: OpenAI;
   private readonly qdrant: QdrantClient;
   private readonly collectionName: string;
+  private readonly geminiKeys: string[];
+  private currentKeyIndex = 0;
 
   constructor(
     @InjectModel(IngestionDocument.name)
     private readonly docModel: Model<IngestionDocumentDocument>,
     private readonly configService: ConfigService,
   ) {
-    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const keysStr = this.configService.get<string>('GEMINI_API_KEYS') || '';
+    const singleKey = this.configService.get<string>('GEMINI_API_KEY') || '';
+    const parsed = keysStr.split(',').map(k => k.trim()).filter(Boolean);
+    this.geminiKeys = parsed.length > 0 ? parsed : (singleKey ? [singleKey] : []);
+
+    const geminiKey = this.geminiKeys[0] || undefined;
     this.openai = new OpenAI({
       apiKey: geminiKey || this.configService.get<string>('OPENAI_API_KEY'),
       baseURL: geminiKey ? 'https://generativelanguage.googleapis.com/v1beta/openai/' : undefined,
@@ -54,7 +61,8 @@ export class IngestionService implements OnModuleInit {
         (c) => c.name === this.collectionName,
       );
       if (!exists) {
-        const vectorSize = this.configService.get<string>('GEMINI_API_KEY') ? 3072 : 1536;
+        const hasGemini = this.geminiKeys.length > 0;
+        const vectorSize = hasGemini ? 3072 : 1536;
         await this.qdrant.createCollection(this.collectionName, {
           vectors: { size: vectorSize, distance: 'Cosine' },
         });
@@ -71,6 +79,8 @@ export class IngestionService implements OnModuleInit {
     file: Express.Multer.File,
     lessonId: string | undefined,
     uploadedBy: string,
+    topic?: string,
+    level?: string,
   ) {
     // Create document record
     const doc = await this.docModel.create({
@@ -80,10 +90,12 @@ export class IngestionService implements OnModuleInit {
       lesson_id: lessonId ?? null,
       uploaded_by: uploadedBy,
       chunk_count: 0,
+      topic: topic ?? null,
+      level: level ?? null,
     });
 
     // Process in background (fire & forget)
-    this.processDocument(doc.id as string, file).catch((err) => {
+    this.processDocument(doc.id as string, file, topic, level).catch((err) => {
       this.logger.error(`Background processing failed for ${doc.id}: ${err.message}`);
     });
 
@@ -104,7 +116,12 @@ export class IngestionService implements OnModuleInit {
 
   // ─── Processing Pipeline ──────────────────────────────────────────────────────
 
-  private async processDocument(docId: string, file: Express.Multer.File) {
+  private async processDocument(
+    docId: string,
+    file: Express.Multer.File,
+    topic?: string,
+    level?: string,
+  ) {
     await this.docModel.findByIdAndUpdate(docId, { status: 'PROCESSING' });
 
     try {
@@ -117,7 +134,7 @@ export class IngestionService implements OnModuleInit {
 
       // 3. Embed + upsert to Qdrant
       const doc = await this.docModel.findById(docId).lean();
-      await this.embedAndUpsert(chunks, docId, doc?.lesson_id ?? null);
+      await this.embedAndUpsert(chunks, docId, doc?.lesson_id ?? null, topic, level);
 
       // 4. Update status
       await this.docModel.findByIdAndUpdate(docId, {
@@ -179,32 +196,107 @@ export class IngestionService implements OnModuleInit {
     chunks: string[],
     documentId: string,
     lessonId: string | null,
+    topic?: string,
+    level?: string,
   ) {
     const BATCH = 20;
 
     for (let i = 0; i < chunks.length; i += BATCH) {
       const batch = chunks.slice(i, i + BATCH);
 
-      // Embed batch
-      const embeddingResp = await this.openai.embeddings.create({
-        model: this.configService.get<string>('GEMINI_API_KEY') ? 'gemini-embedding-001' : 'text-embedding-3-small',
-        input: batch,
-      });
+      // Embed batch with rotation
+      const embeddings = await this.embedBatch(batch);
 
       // Build Qdrant points
-      const points = embeddingResp.data.map((emb, idx) => ({
+      const points = embeddings.map((emb, idx) => ({
         id: uuidv4(),
-        vector: emb.embedding,
+        vector: emb,
         payload: {
           document_id: documentId,
           lesson_id: lessonId ?? '',
           chunk_text: batch[idx],
-          topic: '',
-          level: '',
+          topic: topic ?? '',
+          level: level ?? '',
         },
       }));
 
       await this.qdrant.upsert(this.collectionName, { points, wait: true });
     }
+  }
+
+  // ─── Vector Search ────────────────────────────────────────────────────────────
+
+  async search(query: string, limit = 5) {
+    try {
+      const embedding = await this.embedText(query);
+
+      const results = await this.qdrant.search(this.collectionName, {
+        vector: embedding,
+        limit,
+        with_payload: true,
+      });
+
+      return results.map((r) => ({
+        id: r.id,
+        score: r.score,
+        text: String(r.payload?.chunk_text ?? ''),
+        topic: String(r.payload?.topic ?? ''),
+        level: String(r.payload?.level ?? ''),
+      }));
+    } catch (err) {
+      this.logger.error(`Failed to search in Qdrant: ${err.message}`);
+      return [];
+    }
+  }
+
+  private async embedText(text: string): Promise<number[]> {
+    const res = await this.embedBatch([text]);
+    return res[0];
+  }
+
+  private async embedBatch(inputs: string[]): Promise<number[][]> {
+    const openAiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
+    const useOpenAI = openAiKey && !openAiKey.includes('your-openai') && openAiKey !== 'sk-...';
+
+    if (this.geminiKeys.length === 0 && !useOpenAI) {
+      const vectorSize = 3072;
+      return inputs.map(() => Array(vectorSize).fill(0.1));
+    }
+
+    if (useOpenAI && this.geminiKeys.length === 0) {
+      const client = new OpenAI({ apiKey: openAiKey });
+      const response = await client.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: inputs,
+      });
+      return response.data.map(d => d.embedding);
+    }
+
+    const totalKeys = this.geminiKeys.length;
+    let lastError: any;
+
+    for (let attempt = 0; attempt < totalKeys; attempt++) {
+      const keyIdx = (this.currentKeyIndex + attempt) % totalKeys;
+      const key = this.geminiKeys[keyIdx];
+      try {
+        const client = new OpenAI({
+          apiKey: key,
+          baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+        });
+        const response = await client.embeddings.create({
+          model: 'gemini-embedding-001',
+          input: inputs,
+        });
+        this.currentKeyIndex = keyIdx;
+        return response.data.map(d => d.embedding);
+      } catch (err: any) {
+        this.logger.warn(`Embedding batch failed with key #${keyIdx + 1}: ${err.message}`);
+        lastError = err;
+        if (err.status === 429 || err.status === 503) {
+          continue;
+        }
+      }
+    }
+    throw lastError || new Error('Tất cả API keys để tạo embedding đều thất bại');
   }
 }

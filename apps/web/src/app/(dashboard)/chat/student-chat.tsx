@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-import { BrainCircuit, Send, Sparkles, Plus, Loader2, BookOpen } from "lucide-react";
+import { BrainCircuit, Send, Sparkles, Plus, Loader2, BookOpen, Timer } from "lucide-react";
 import { useState } from "react";
 import { useChat } from "@/hooks/use-chat";
-import type { ChatSource } from "@/lib/chat-api";
+import type { ChatSource, ChatMessage } from "@/hooks/use-chat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -42,6 +42,65 @@ function SourcesBadge({ sources }: { sources: ChatSource[] }) {
               </span>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TimingsBadge({ timings }: { timings?: ChatMessage["timings"] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!timings) return null;
+
+  return (
+    <div className="mt-2 text-slate-400">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 border border-slate-200/60 rounded-full px-2 py-0.5"
+      >
+        <Timer className="h-3 w-3 text-emerald-500 animate-pulse" />
+        Phản hồi trong {(timings.totalMs / 1000).toFixed(2)}s
+        <span className="text-[8px] ml-0.5">{expanded ? "▲ Thu gọn" : "▼ Chi tiết"}</span>
+      </button>
+      {expanded && (
+        <div className="mt-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-[11px] font-sans text-slate-600 space-y-1.5 w-72 animate-fade-in-up shadow-sm">
+          <div className="font-semibold text-slate-800 border-b border-slate-200/60 pb-1 mb-1.5 flex items-center gap-1">
+            <Timer className="h-3.5 w-3.5 text-primary" />
+            Thời gian xử lý từng bước
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">1. Thiết lập session:</span>
+            <span className="font-mono text-slate-800 font-medium">{timings.sessionSetupMs}ms</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">2. Lưu câu hỏi (DB):</span>
+            <span className="font-mono text-slate-800 font-medium">{timings.dbSaveUserMsgMs}ms</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">3. Lấy lịch sử chat:</span>
+            <span className="font-mono text-slate-800 font-medium">{timings.dbRetrieveHistoryMs}ms</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">4. Tạo Embedding text:</span>
+            <span className="font-mono text-slate-800 font-medium">{timings.embeddingMs}ms</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">5. Tìm kiếm Qdrant:</span>
+            <span className="font-mono text-slate-800 font-medium">{timings.vectorSearchMs}ms</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">6. Gọi LLM API (Gemini):</span>
+            <span className="font-mono text-slate-800 font-medium">{timings.llmCallMs}ms</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500">7. Lưu câu trả lời (DB):</span>
+            <span className="font-mono text-slate-800 font-medium">{timings.dbSaveReplyMs}ms</span>
+          </div>
+          <div className="flex justify-between items-center col-span-2 border-t border-slate-200 pt-1.5 mt-1.5 font-bold text-primary">
+            <span>Tổng cộng:</span>
+            <span className="font-mono">{timings.totalMs}ms</span>
+          </div>
         </div>
       )}
     </div>
@@ -141,6 +200,10 @@ export default function StudentChatPage() {
                     message.sources.length > 0 && (
                       <SourcesBadge sources={message.sources} />
                     )}
+
+                  {message.role === "assistant" && message.timings && (
+                    <TimingsBadge timings={message.timings} />
+                  )}
                 </div>
               </div>
             ))}

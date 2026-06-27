@@ -83,4 +83,95 @@ export class UsersService {
       data: { passwordHash },
     });
   }
+
+  async getUserProgress(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      }
+    });
+
+    if (!user) throw new NotFoundException('Người dùng không tồn tại');
+
+    // 1. Lấy danh sách các khóa học đã đăng ký kèm tiến độ
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: { userId },
+      include: {
+        course: {
+          include: {
+            _count: { select: { lessons: true } },
+            lessons: {
+              select: {
+                id: true,
+                progress: {
+                  where: { userId, status: 'COMPLETED' },
+                  select: { id: true }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const courseProgress = enrollments.map(e => {
+      const course = e.course;
+      const totalLessons = course._count.lessons;
+      const completedLessons = course.lessons.reduce((acc, lesson) => acc + (lesson.progress.length > 0 ? 1 : 0), 0);
+      const progressPercentage = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+      
+      return {
+        id: course.id,
+        title: course.title,
+        level: course.level,
+        totalLessons,
+        completedLessons,
+        progressPercentage,
+        enrolledAt: e.createdAt,
+      };
+    });
+
+    // 2. Lấy danh sách điểm số quiz
+    const quizAttempts = await this.prisma.quizAttempt.findMany({
+      where: { userId },
+      include: {
+        quiz: {
+          select: {
+            title: true,
+            lesson: {
+              select: {
+                title: true,
+                course: {
+                  select: {
+                    title: true,
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const formattedQuizAttempts = quizAttempts.map(attempt => ({
+      id: attempt.id,
+      quizTitle: attempt.quiz.title,
+      lessonTitle: attempt.quiz.lesson.title,
+      courseTitle: attempt.quiz.lesson.course.title,
+      score: attempt.score,
+      totalQuestions: attempt.totalQuestions,
+      createdAt: attempt.createdAt,
+    }));
+
+    return {
+      user,
+      courses: courseProgress,
+      quizzes: formattedQuizAttempts,
+    };
+  }
 }

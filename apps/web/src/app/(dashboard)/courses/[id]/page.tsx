@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { BookOpen, PlayCircle, ChevronRight, Clock, Star, Users, ArrowLeft, ListChecks } from "lucide-react";
+import { BookOpen, PlayCircle, ChevronRight, Clock, Star, Users, ArrowLeft, ListChecks, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getUser } from "@/lib/auth";
@@ -26,18 +26,18 @@ interface Course {
   lessons: Lesson[];
 }
 
-async function getEnrollmentStatus(courseId: string, token?: string): Promise<{ enrolled: boolean, progress: number }> {
-  if (!token) return { enrolled: false, progress: 0 };
+async function getEnrollmentStatus(courseId: string, token?: string): Promise<{ enrolled: boolean, progress: number, completedLessonIds: string[] }> {
+  if (!token) return { enrolled: false, progress: 0, completedLessonIds: [] };
   try {
     const res = await fetch(`http://localhost:3001/api/v1/enrollments/check/${courseId}`, {
       headers: { "Authorization": `Bearer ${token}` },
       cache: "no-store",
     });
-    if (!res.ok) return { enrolled: false, progress: 0 };
+    if (!res.ok) return { enrolled: false, progress: 0, completedLessonIds: [] };
     const data = await res.json();
     return data;
   } catch {
-    return { enrolled: false, progress: 0 };
+    return { enrolled: false, progress: 0, completedLessonIds: [] };
   }
 }
 async function getCourse(id: string): Promise<Course | null> {
@@ -57,6 +57,7 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
   const enrollmentStatus = await getEnrollmentStatus(id, token);
   const isEnrolled = enrollmentStatus.enrolled;
   const progress = enrollmentStatus.progress;
+  const completedLessonIds = enrollmentStatus.completedLessonIds || [];
 
   if (!course) {
     notFound();
@@ -110,30 +111,37 @@ export default async function CourseDetailPage({ params }: { params: { id: strin
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-slate-900 font-display">Nội dung bài học</h2>
             <div className="grid gap-3">
-              {course.lessons.map((lesson, index) => (
-                <Link key={lesson.id} href={`/courses/${id}/lessons/${lesson.id}`}>
-                  <div className="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 shadow-sm hover:shadow-md">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-slate-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                      {index + 1}
+              {course.lessons.map((lesson, index) => {
+                const isCompleted = completedLessonIds.includes(lesson.id);
+                return (
+                  <Link key={lesson.id} href={`/courses/${id}/lessons/${lesson.id}`}>
+                    <div className="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 shadow-sm hover:shadow-md">
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-colors ${
+                        isCompleted 
+                          ? "bg-emerald-100 text-emerald-700" 
+                          : "bg-slate-100 text-slate-500 group-hover:bg-primary/10 group-hover:text-primary"
+                      }`}>
+                        {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-slate-900 group-hover:text-primary transition-colors truncate">
+                          {lesson.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                          {lesson.quizzes && lesson.quizzes.length > 0 ? (
+                            <><ListChecks className="h-3 w-3 text-amber-500" /> Bài tập trắc nghiệm</>
+                          ) : lesson.videoUrl ? (
+                            <><PlayCircle className="h-3 w-3 text-blue-500" /> 15 phút bài giảng</>
+                          ) : (
+                            <><BookOpen className="h-3 w-3 text-slate-400" /> Nội dung bài học</>
+                          )}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 group-hover:text-primary transition-colors truncate">
-                        {lesson.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                        {lesson.quizzes && lesson.quizzes.length > 0 ? (
-                          <><ListChecks className="h-3 w-3 text-amber-500" /> Bài tập trắc nghiệm</>
-                        ) : lesson.videoUrl ? (
-                          <><PlayCircle className="h-3 w-3 text-blue-500" /> 15 phút bài giảng</>
-                        ) : (
-                          <><BookOpen className="h-3 w-3 text-slate-400" /> Nội dung bài học</>
-                        )}
-                      </p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>

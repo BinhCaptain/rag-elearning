@@ -30,6 +30,12 @@ export class IngestionDocument {
 
   @Prop({ required: true })
   uploaded_by: string;
+
+  @Prop({ type: String, default: null })
+  topic: string | null;
+
+  @Prop({ type: String, default: null })
+  level: string | null;
 }
 
 export const IngestionDocumentSchema = SchemaFactory.createForClass(IngestionDocument);

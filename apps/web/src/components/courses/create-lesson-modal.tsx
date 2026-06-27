@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { PlayCircle, FileText, Youtube, ListChecks, Plus, Trash, CheckCircle2 } from "lucide-react";
+import { PlayCircle, FileText, Youtube, ListChecks, Plus, Trash, CheckCircle2, Loader2, Upload, X, Film } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface CreateLessonModalProps {
@@ -34,6 +34,10 @@ interface CreateLessonModalProps {
 export function CreateLessonModal({ open, onOpenChange, courseId, initialData }: CreateLessonModalProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState<"info" | "video" | "content" | "quiz">("info");
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
@@ -87,6 +91,64 @@ export function CreateLessonModal({ open, onOpenChange, courseId, initialData }:
     } catch (error) {
       console.error("Error fetching quiz:", error);
     }
+  };
+
+  const uploadVideoFile = (file: File) => {
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("Kích thước video vượt quá giới hạn 100MB");
+      return;
+    }
+    const allowedTypes = ["video/mp4", "video/webm", "video/quicktime", "video/x-matroska", "video/x-msvideo"];
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp4|webm|mov|mkv|avi)$/i)) {
+      toast.error("Định dạng file không được hỗ trợ. Vui lòng chọn file .mp4, .webm, .mov, .mkv hoặc .avi");
+      return;
+    }
+
+    setSelectedFile(file);
+    setUploadingVideo(true);
+    setUploadProgress(0);
+
+    const formDataUpload = new FormData();
+    formDataUpload.append("file", file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable) {
+        const pct = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(pct);
+      }
+    });
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const data = JSON.parse(xhr.responseText);
+        setFormData((prev) => ({ ...prev, videoUrl: data.url }));
+        setSelectedFile(null);
+        toast.success("Tải video lên thành công!");
+      } else {
+        toast.error("Có lỗi xảy ra khi tải video lên.");
+      }
+      setUploadingVideo(false);
+      setUploadProgress(0);
+    });
+    xhr.addEventListener("error", () => {
+      toast.error("Mất kết nối khi tải video lên.");
+      setUploadingVideo(false);
+      setUploadProgress(0);
+    });
+    xhr.open("POST", "http://localhost:3001/api/v1/lessons/upload-video");
+    xhr.send(formDataUpload);
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadVideoFile(file);
+  };
+
+  const handleVideoDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) uploadVideoFile(file);
   };
 
   const addQuestion = () => {
@@ -243,6 +305,7 @@ export function CreateLessonModal({ open, onOpenChange, courseId, initialData }:
             {/* Tab: Video */}
             {activeTab === "video" && (
               <div className="space-y-4">
+                {/* Section 1: URL input */}
                 <div className="grid gap-2">
                   <Label htmlFor="videoUrl">URL Video (YouTube, Vimeo...)</Label>
                   <Input
@@ -251,29 +314,139 @@ export function CreateLessonModal({ open, onOpenChange, courseId, initialData }:
                     placeholder="https://www.youtube.com/watch?v=..."
                     value={formData.videoUrl}
                     onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                    disabled={uploadingVideo}
                   />
                   <p className="text-xs text-slate-500">
                     Dán link YouTube hoặc Vimeo vào đây. Hệ thống sẽ tự động nhúng video vào bài học.
                   </p>
                 </div>
 
-                {formData.videoUrl && (
-                  <div className="rounded-xl overflow-hidden bg-slate-900 aspect-video">
-                    <iframe
-                      src={getEmbedUrl(formData.videoUrl)}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Hoặc tải file từ máy</span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                </div>
+
+                {/* Section 2: Drag & Drop upload zone */}
+                {!uploadingVideo ? (
+                  <label
+                    htmlFor="video-file-input"
+                    className={`flex flex-col items-center justify-center gap-3 py-10 rounded-2xl border-2 border-dashed cursor-pointer transition-colors ${
+                      dragOver
+                        ? "border-blue-400 bg-blue-50"
+                        : "border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50/50"
+                    }`}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleVideoDrop}
+                  >
+                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100">
+                      <Upload className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-slate-700">Kéo & thả video vào đây</p>
+                      <p className="text-xs text-slate-400 mt-1">hoặc click để chọn file từ máy tính</p>
+                    </div>
+                    <p className="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                      .mp4, .mov, .webm, .mkv, .avi · Tối đa 100MB
+                    </p>
+                    <input
+                      id="video-file-input"
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo,.mp4,.webm,.mov,.mkv,.avi"
+                      className="hidden"
+                      onChange={handleVideoUpload}
                     />
+                  </label>
+                ) : (
+                  /* Upload progress UI */
+                  <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 shrink-0">
+                        <Film className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-700 truncate">{selectedFile?.name}</p>
+                        <p className="text-xs text-slate-400">
+                          {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(1) : 0} MB
+                        </p>
+                      </div>
+                      <div className="text-sm font-bold text-blue-600 shrink-0">{uploadProgress}%</div>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="w-full h-2 bg-blue-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-blue-500 flex items-center gap-1.5">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Đang tải video lên server... Vui lòng không đóng cửa sổ này.
+                    </p>
                   </div>
                 )}
 
-                {!formData.videoUrl && (
-                  <div className="flex flex-col items-center justify-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 gap-3">
-                    <Youtube className="h-12 w-12 opacity-30" />
-                    <p className="text-sm font-medium">Nhập URL video để xem bản xem trước</p>
+                {/* Video preview */}
+                {formData.videoUrl && !uploadingVideo && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs text-slate-500">Xem trước video</Label>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, videoUrl: "" })}
+                        className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X className="h-3 w-3" /> Xóa video
+                      </button>
+                    </div>
+                    <div className="rounded-xl overflow-hidden bg-slate-900 aspect-video">
+                      {formData.videoUrl.includes('/uploads/') ||
+                       formData.videoUrl.match(/\.(mp4|webm|mov|mkv|avi)$/i) ? (
+                        <video
+                          key={formData.videoUrl}
+                          src={formData.videoUrl}
+                          className="w-full h-full"
+                          controls
+                        />
+                      ) : (
+                        <iframe
+                          src={getEmbedUrl(formData.videoUrl)}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      )}
+                    </div>
                   </div>
                 )}
+
+                {!formData.videoUrl && !uploadingVideo && (
+                  <div className="flex flex-col items-center justify-center py-4 text-slate-400 gap-1">
+                    <Youtube className="h-8 w-8 opacity-20" />
+                    <p className="text-xs">Chưa có video. Nhập URL hoặc tải file lên để xem trước.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab: Content */}
+            {activeTab === "content" && (
+              <div className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="content">Nội dung bài học (Hỗ trợ Markdown)</Label>
+                  <Textarea
+                    id="content"
+                    placeholder="Nhập nội dung lý thuyết, bài đọc, từ vựng..."
+                    className="min-h-[250px] resize-y"
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  />
+                  <p className="text-xs text-slate-500">
+                    Hỗ trợ định dạng Markdown (**, *, #). Nội dung này sẽ được cung cấp cho AI Trợ giảng làm tài liệu tham khảo.
+                  </p>
+                </div>
               </div>
             )}
 

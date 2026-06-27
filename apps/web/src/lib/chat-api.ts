@@ -12,6 +12,16 @@ export interface ChatResponse {
   sessionId: string;
   reply: string;
   sources: ChatSource[];
+  timings?: {
+    sessionSetupMs: number;
+    dbSaveUserMsgMs: number;
+    dbRetrieveHistoryMs: number;
+    embeddingMs: number;
+    vectorSearchMs: number;
+    llmCallMs: number;
+    dbSaveReplyMs: number;
+    totalMs: number;
+  };
 }
 
 export interface ChatMessageData {

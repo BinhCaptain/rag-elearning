@@ -9,6 +9,7 @@ import { Loader2, Upload, FileType, Search, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { getUser } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function IngestionPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -38,8 +39,10 @@ export default function IngestionPage() {
     if (level) formData.append("level", level);
 
     try {
+      const token = Cookies.get("token");
       const res = await fetch("http://localhost:3001/api/v1/ingestion/upload", {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
 
@@ -67,7 +70,10 @@ export default function IngestionPage() {
 
     setIsSearching(true);
     try {
-      const res = await fetch(`http://localhost:3001/api/v1/ingestion/search?q=${encodeURIComponent(query)}`);
+      const token = Cookies.get("token");
+      const res = await fetch(`http://localhost:3001/api/v1/ingestion/search?q=${encodeURIComponent(query)}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!res.ok) throw new Error("Search failed");
       const data = await res.json();
       setSearchResults(data);

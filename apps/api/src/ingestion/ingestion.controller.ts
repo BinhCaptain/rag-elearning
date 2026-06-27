@@ -7,6 +7,7 @@ import {
   UploadedFile,
   Request,
   Query,
+  Body,
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -15,13 +16,13 @@ import { IngestionService } from './ingestion.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
-@Controller('admin/documents')
+@Controller('ingestion')
 export class IngestionController {
   constructor(private readonly ingestionService: IngestionService) {}
 
   /**
-   * POST /api/v1/admin/documents/upload
-   * Upload tài liệu để RAG ingestion (Admin only)
+   * POST /api/v1/ingestion/upload
+   * Upload tài liệu để RAG ingestion (Admin/User)
    */
   @Post('upload')
   @UseInterceptors(
@@ -42,15 +43,27 @@ export class IngestionController {
   async uploadDocument(
     @UploadedFile() file: Express.Multer.File,
     @Request() req: any,
+    @Body('topic') topic?: string,
+    @Body('level') level?: string,
     @Query('lessonId') lessonId?: string,
   ) {
     if (!file) throw new BadRequestException('Không tìm thấy file');
     const userId = req.user.userId || req.user.sub || req.user.id || 'admin-system';
-    return this.ingestionService.uploadDocument(file, lessonId, userId);
+    return this.ingestionService.uploadDocument(file, lessonId, userId, topic, level);
   }
 
   /**
-   * GET /api/v1/admin/documents
+   * GET /api/v1/ingestion/search?q=...
+   * Tìm kiếm vector RAG chunks
+   */
+  @Get('search')
+  async search(@Query('q') query: string) {
+    if (!query) throw new BadRequestException('Query parameter q is required');
+    return this.ingestionService.search(query);
+  }
+
+  /**
+   * GET /api/v1/ingestion
    * Lấy danh sách documents đã upload
    */
   @Get()

@@ -26,7 +26,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Search, Trash2, RefreshCw, ShieldCheck, GraduationCap, Loader2, Plus, Pencil } from "lucide-react";
+import { Users, Search, Trash2, RefreshCw, ShieldCheck, GraduationCap, Loader2, Plus, Pencil, Eye, BookOpen, Award } from "lucide-react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 
@@ -51,6 +51,11 @@ export default function AdminUsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formSaving, setFormSaving] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "", role: "STUDENT" });
+
+  const [progressUser, setProgressUser] = useState<User | null>(null);
+  const [progressData, setProgressData] = useState<{ courses: any[]; quizzes: any[] } | null>(null);
+  const [loadingProgress, setLoadingProgress] = useState(false);
+  const [progressTab, setProgressTab] = useState<'courses' | 'quizzes'>('courses');
 
   const token = Cookies.get("token");
 
@@ -104,6 +109,27 @@ export default function AdminUsersPage() {
     setEditingUser(user);
     setFormData({ name: user.name, email: user.email, password: "", role: user.role });
     setFormOpen(true);
+  };
+
+  const handleOpenProgress = async (user: User) => {
+    setProgressUser(user);
+    setLoadingProgress(true);
+    setProgressTab('courses');
+    setProgressData(null);
+    try {
+      const res = await fetch(`http://localhost:3001/api/v1/users/${user.id}/progress`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Không thể tải thông tin tiến độ học tập");
+      const data = await res.json();
+      setProgressData(data);
+    } catch (e: any) {
+      toast.error(e.message || "Có lỗi xảy ra");
+      setProgressUser(null);
+    } finally {
+      setLoadingProgress(false);
+    }
   };
 
   const handleSaveUser = async (e: React.FormEvent) => {
@@ -265,6 +291,17 @@ export default function AdminUsersPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1">
+                    {user.role === "STUDENT" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
+                        onClick={() => handleOpenProgress(user)}
+                        title="Xem tiến độ học tập"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
@@ -388,6 +425,159 @@ export default function AdminUsersPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Student Progress Dialog */}
+      <Dialog open={!!progressUser} onOpenChange={(open) => !open && setProgressUser(null)}>
+        <DialogContent className="sm:max-w-[650px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <GraduationCap className="h-6 w-6 text-primary" />
+              Tiến độ học tập: {progressUser?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Xem các khóa học đã đăng ký và kết quả làm bài trắc nghiệm của học viên.
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingProgress ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary/50" />
+            </div>
+          ) : !progressData ? (
+            <div className="text-center py-10 text-slate-500">
+              Không thể tải dữ liệu tiến độ.
+            </div>
+          ) : (
+            <div className="space-y-6 pt-4">
+              {/* Tab selector */}
+              <div className="flex border-b border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setProgressTab('courses')}
+                  className={`flex-1 py-2.5 text-sm font-semibold border-b-2 text-center transition-colors ${
+                    progressTab === 'courses'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Khóa học đã đăng ký ({(progressData as any).courses.length})
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProgressTab('quizzes')}
+                  className={`flex-1 py-2.5 text-sm font-semibold border-b-2 text-center transition-colors ${
+                    progressTab === 'quizzes'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Award className="h-4 w-4" />
+                    Kết quả trắc nghiệm ({(progressData as any).quizzes.length})
+                  </div>
+                </button>
+              </div>
+
+              {/* Tab contents */}
+              {progressTab === 'courses' ? (
+                <div className="space-y-4">
+                  {(progressData as any).courses.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <BookOpen className="h-10 w-10 mx-auto opacity-30 mb-2" />
+                      Học viên chưa đăng ký khóa học nào.
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      {(progressData as any).courses.map((course: any) => (
+                        <div key={course.id} className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col gap-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-slate-900">{course.title}</h4>
+                              <p className="text-xs text-slate-400 mt-0.5">
+                                Cấp độ: <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-bold uppercase">{course.level || 'N/A'}</Badge>
+                              </p>
+                            </div>
+                            <span className="text-sm font-bold text-primary">{course.progressPercentage}%</span>
+                          </div>
+                          
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary rounded-full transition-all duration-300"
+                              style={{ width: `${course.progressPercentage}%` }}
+                            />
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-xs text-slate-500 mt-1">
+                            <span>Đã học {course.completedLessons}/{course.totalLessons} bài học</span>
+                            <span>Đăng ký: {new Date(course.enrolledAt).toLocaleDateString('vi-VN')}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {(progressData as any).quizzes.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <Award className="h-10 w-10 mx-auto opacity-30 mb-2" />
+                      Chưa làm bài trắc nghiệm nào.
+                    </div>
+                  ) : (
+                    <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100">
+                      {(progressData as any).quizzes.map((attempt: any) => {
+                        const pct = Math.round((attempt.score / attempt.totalQuestions) * 100);
+                        const passed = pct >= 80;
+                        return (
+                          <div key={attempt.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                                {attempt.courseTitle}
+                              </span>
+                              <h5 className="font-semibold text-slate-900 text-sm truncate mt-0.5">
+                                {attempt.quizTitle}
+                              </h5>
+                              <p className="text-xs text-slate-500 truncate mt-0.5">
+                                Bài: {attempt.lessonTitle}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0 self-end sm:self-auto">
+                              <div className="text-right">
+                                <span className={`text-sm font-extrabold ${passed ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                  {attempt.score}/{attempt.totalQuestions} ({pct}%)
+                                </span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">
+                                  {new Date(attempt.createdAt).toLocaleDateString('vi-VN')} {new Date(attempt.createdAt).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                                </span>
+                              </div>
+                              <Badge className={`font-bold text-[10px] border-none py-0.5 px-2 rounded-full uppercase ${
+                                passed 
+                                  ? 'bg-emerald-50 text-emerald-700' 
+                                  : 'bg-amber-50 text-amber-700'
+                              }`}>
+                                {passed ? 'Đạt' : 'Chưa Đạt'}
+                              </Badge>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter className="pt-4 border-t border-slate-100">
+            <Button type="button" variant="outline" onClick={() => setProgressUser(null)}>
+              Đóng
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

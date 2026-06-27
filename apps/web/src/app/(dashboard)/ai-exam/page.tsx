@@ -77,7 +77,12 @@ export default function AIExamPage() {
 
       setDraftExam(data);
       if (!lessonTitle) setLessonTitle(data.title || "Đề thi AI");
-      toast.success("Phân tích JSON thành công!");
+      
+      if (data._isFallback) {
+        toast.warning("API Gemini đang bị giới hạn quota. Đề mẫu tạm thời được dùng để preview.");
+      } else {
+        toast.success("Sinh đề AI thành công!");
+      }
     } catch (err: any) {
       toast.error(err.message || "Lỗi khi sinh đề AI. Vui lòng thử lại.");
     } finally {
@@ -188,11 +193,16 @@ export default function AIExamPage() {
       ) : (
         <div className="space-y-6">
           <Card className="border-slate-200 overflow-hidden shadow-sm">
-            <CardHeader className="bg-emerald-50 border-b border-emerald-100">
-              <CardTitle className="flex items-center gap-2 text-emerald-800">
-                <CheckCircle2 className="h-5 w-5" /> Đã sinh đề thành công
+            <CardHeader className={draftExam._isFallback ? "bg-amber-50 border-b border-amber-100" : "bg-emerald-50 border-b border-emerald-100"}>
+              <CardTitle className={`flex items-center gap-2 ${draftExam._isFallback ? 'text-amber-800' : 'text-emerald-800'}`}>
+                <CheckCircle2 className="h-5 w-5" /> 
+                {draftExam._isFallback ? "⚠️ Đề mẫu tạm thời (API đang bị rate limit)" : "Đã sinh đề thành công"}
               </CardTitle>
-              <CardDescription className="text-emerald-700/80">Bạn có thể cấu hình khóa học và lưu lại</CardDescription>
+              <CardDescription className={draftExam._isFallback ? "text-amber-700/80" : "text-emerald-700/80"}>
+                {draftExam._isFallback 
+                  ? "Tất cả Gemini API keys đã hết quota hôm nay. Đây là đề mẫu cố định — hãy thử lại vào ngày mai hoặc thêm API key mới."
+                  : "Bạn có thể cấu hình khóa học và lưu lại"}
+              </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-4">
               <div className="grid gap-2">

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 interface LessonActionsProps {
   lessonId: string;
@@ -14,6 +15,7 @@ interface LessonActionsProps {
 export function LessonActions({ lessonId, initialCompleted }: LessonActionsProps) {
   const [isCompleted, setIsCompleted] = useState(initialCompleted);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const toggleProgress = async () => {
     setLoading(true);
@@ -32,6 +34,7 @@ export function LessonActions({ lessonId, initialCompleted }: LessonActionsProps
       const data = await res.json();
       setIsCompleted(data.status === "COMPLETED");
       toast.success(data.status === "COMPLETED" ? "Đã đánh dấu hoàn thành!" : "Đã bỏ đánh dấu hoàn thành");
+      router.refresh();
     } catch (error) {
       toast.error("Không thể cập nhật tiến độ");
     } finally {

@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "question": "Thì hiện tại hoàn thành (Present Perfect) được dùng khi nào?",
+    "ground_truth": "Thì hiện tại hoàn thành được dùng để diễn tả hành động xảy ra trong quá khứ nhưng có liên quan đến hiện tại, hoặc hành động vừa mới xảy ra. Cấu trúc: S + have/has + V3. Ví dụ: I have finished my homework (Tôi vừa làm xong bài tập).",
+    "category": "grammar_basic"
+  },
+  {
+    "id": 2,
+    "question": "Sự khác nhau giữa 'since' và 'for' trong tiếng Anh là gì?",
+    "ground_truth": "'Since' dùng để chỉ thời điểm bắt đầu cụ thể (since 2020, since Monday), trong khi 'for' dùng để chỉ khoảng thời gian kéo dài (for 3 years, for a long time). Cả hai thường đi với thì hiện tại hoàn thành.",
+    "category": "grammar_basic"
+  },
+  {
+    "id": 3,
+    "question": "Cách dùng thì quá khứ đơn (Simple Past) như thế nào?",
+    "ground_truth": "Thì quá khứ đơn diễn tả hành động đã xảy ra và kết thúc hoàn toàn trong quá khứ. Cấu trúc: S + V2/ed. Thường đi với các trạng từ: yesterday, last week, ago, in 2020. Ví dụ: She visited Paris last year.",
+    "category": "grammar_basic"
+  },
+  {
+    "id": 4,
+    "question": "Mạo từ 'a', 'an', 'the' được dùng như thế nào?",
+    "ground_truth": "'A' dùng trước danh từ đếm được số ít bắt đầu bằng phụ âm. 'An' dùng trước danh từ bắt đầu bằng nguyên âm. 'The' dùng khi đề cập đến danh từ cụ thể, đã biết, hoặc duy nhất. Không dùng mạo từ trước danh từ không đếm được hoặc danh từ số nhiều chung chung.",
+    "category": "grammar_basic"
+  },
+  {
+    "id": 5,
+    "question": "Câu điều kiện loại 1 (First Conditional) dùng để diễn tả điều gì?",
+    "ground_truth": "Câu điều kiện loại 1 diễn tả điều kiện có thể xảy ra ở hiện tại hoặc tương lai. Cấu trúc: If + S + V (hiện tại đơn), S + will + V. Ví dụ: If it rains, I will stay home.",
+    "category": "grammar_intermediate"
+  },
+  {
+    "id": 6,
+    "question": "Passive voice (câu bị động) được hình thành như thế nào?",
+    "ground_truth": "Câu bị động được tạo bằng cách đảo tân ngữ lên làm chủ ngữ. Cấu trúc: S + be + V3/ed + (by + agent). Ví dụ: The book was written by Mark Twain. 'Be' được chia theo thì của động từ trong câu chủ động.",
+    "category": "grammar_intermediate"
+  },
+  {
+    "id": 7,
+    "question": "Reported speech (câu gián tiếp) thay đổi như thế nào so với câu trực tiếp?",
+    "ground_truth": "Khi chuyển sang câu gián tiếp: thì của động từ lùi về quá khứ một bậc, đại từ nhân xưng thay đổi theo ngữ cảnh, trạng từ chỉ thời gian và nơi chốn cũng thay đổi. Ví dụ: She said 'I am happy' → She said that she was happy.",
+    "category": "grammar_intermediate"
+  },
+  {
+    "id": 8,
+    "question": "Gerund và Infinitive khác nhau như thế nào? Cho ví dụ.",
+    "ground_truth": "Gerund (V-ing) dùng sau một số động từ nhất định như: enjoy, finish, avoid, suggest. Infinitive (to + V) dùng sau: want, need, decide, plan. Một số động từ dùng được cả hai nhưng nghĩa khác nhau như: remember, forget, stop.",
+    "category": "grammar_intermediate"
+  },
+  {
+    "id": 9,
+    "question": "Thì tương lai hoàn thành (Future Perfect) được dùng trong hoàn cảnh nào?",
+    "ground_truth": "Thì tương lai hoàn thành diễn tả hành động sẽ hoàn thành trước một thời điểm cụ thể trong tương lai. Cấu trúc: S + will have + V3. Ví dụ: By 2025, she will have graduated.",
+    "category": "grammar_intermediate"
+  },
+  {
+    "id": 10,
+    "question": "Relative clauses (mệnh đề quan hệ) dùng who, which, that khi nào?",
+    "ground_truth": "'Who' dùng cho người, 'which' dùng cho vật/sự việc, 'that' dùng được cho cả người lẫn vật nhưng không dùng trong mệnh đề quan hệ không xác định. Mệnh đề quan hệ xác định không có dấu phẩy, không xác định có dấu phẩy.",
+    "category": "grammar_intermediate"
+  },
+  {
+    "id": 11,
+    "question": "Phrasal verb 'give up' có nghĩa là gì và dùng như thế nào?",
+    "ground_truth": "'Give up' có nghĩa là từ bỏ, ngừng làm gì đó. Ví dụ: He gave up smoking last year. Đây là phrasal verb tách được: He gave smoking up. Các phrasal verb liên quan: give in (đầu hàng), give out (phân phát).",
+    "category": "vocabulary"
+  },
+  {
+    "id": 12,
+    "question": "Sự khác biệt giữa 'affect' và 'effect' là gì?",
+    "ground_truth": "'Affect' thường là động từ, nghĩa là ảnh hưởng đến (Pollution affects health). 'Effect' thường là danh từ, nghĩa là kết quả/tác động (The effects of pollution are serious). Tuy nhiên 'effect' cũng có thể là động từ có nghĩa là gây ra (to effect change).",
+    "category": "vocabulary"
+  },
+  {
+    "id": 13,
+    "question": "Collocation là gì? Ví dụ về các collocations phổ biến trong tiếng Anh.",
+    "ground_truth": "Collocation là cụm từ thường đi cùng nhau một cách tự nhiên trong tiếng Anh. Ví dụ: make a decision (không dùng 'do a decision'), take a photo, do homework, make a mistake. Học collocations giúp tiếng Anh nghe tự nhiên hơn.",
+    "category": "vocabulary"
+  },
+  {
+    "id": 14,
+    "question": "Modal verbs 'must' và 'have to' khác nhau như thế nào?",
+    "ground_truth": "Cả hai đều diễn tả sự bắt buộc, nhưng 'must' thể hiện bắt buộc từ ý kiến cá nhân của người nói, còn 'have to' thể hiện bắt buộc từ quy tắc/luật bên ngoài. Ví dụ: I must study harder (tự thấy cần) vs I have to wear a uniform (quy định trường).",
+    "category": "grammar_intermediate"
+  },
+  {
+    "id": 15,
+    "question": "Cách sử dụng dấu câu trong tiếng Anh: dấu phẩy (comma) dùng khi nào?",
+    "ground_truth": "Dấu phẩy dùng để: ngăn cách các mệnh đề trong câu ghép, liệt kê, sau mệnh đề phụ đứng đầu câu, trong mệnh đề quan hệ không xác định, và ngăn cách tên người khi gọi trực tiếp. Ví dụ: After finishing work, she went home.",
+    "category": "writing"
+  },
+  {
+    "id": 16,
+    "question": "Thì hiện tại tiếp diễn (Present Continuous) dùng khi nào?",
+    "ground_truth": "Thì hiện tại tiếp diễn dùng để: diễn tả hành động đang xảy ra tại thời điểm nói, hành động tạm thời, kế hoạch đã sắp xếp trong tương lai gần. Cấu trúc: S + am/is/are + V-ing. Ví dụ: She is studying now.",
+    "category": "grammar_basic"
+  },
+  {
+    "id": 17,
+    "question": "Sự khác biệt giữa 'make' và 'do' trong tiếng Anh?",
+    "ground_truth": "'Make' thường dùng khi tạo ra, sản xuất, hoặc chuẩn bị thứ gì đó (make food, make a decision, make a mistake). 'Do' thường dùng cho các hoạt động, nhiệm vụ (do homework, do exercise, do the dishes). Cần học thuộc theo collocations.",
+    "category": "vocabulary"
+  },
+  {
+    "id": 18,
+    "question": "Câu điều kiện loại 2 (Second Conditional) và loại 3 khác nhau thế nào?",
+    "ground_truth": "Loại 2 diễn tả giả định không có thật ở hiện tại: If + S + V2 (quá khứ đơn), S + would + V. Loại 3 diễn tả giả định không có thật ở quá khứ: If + S + had + V3, S + would have + V3. Ví dụ Loại 2: If I were rich, I would travel. Loại 3: If I had studied, I would have passed.",
+    "category": "grammar_advanced"
+  },
+  {
+    "id": 19,
+    "question": "Inversion (đảo ngữ) trong tiếng Anh là gì và khi nào dùng?",
+    "ground_truth": "Đảo ngữ là đặt trợ động từ/động từ to be lên trước chủ ngữ. Dùng sau các từ phủ định đầu câu (Never, Rarely, Seldom), sau Only, sau Not only...but also. Ví dụ: Never have I seen such beauty. Đảo ngữ làm câu nhấn mạnh hơn và trang trọng hơn.",
+    "category": "grammar_advanced"
+  },
+  {
+    "id": 20,
+    "question": "Cách viết một đoạn văn tiếng Anh hoàn chỉnh theo cấu trúc chuẩn?",
+    "ground_truth": "Một đoạn văn chuẩn gồm 3 phần: Topic sentence (câu chủ đề nêu ý chính), Supporting sentences (2-4 câu hỗ trợ với ví dụ và giải thích), Concluding sentence (câu kết tóm lại hoặc chuyển ý). Đoạn văn nên tập trung vào một ý duy nhất, rõ ràng và mạch lạc.",
+    "category": "writing"
+  }
+]

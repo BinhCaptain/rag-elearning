@@ -67,4 +67,11 @@ export class UsersController {
   async delete(@Param('id') id: string) {
     await this.usersService.delete(id);
   }
+
+  @Get(':id/progress')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  getUserProgress(@Param('id') id: string) {
+    return this.usersService.getUserProgress(id);
+  }
 }

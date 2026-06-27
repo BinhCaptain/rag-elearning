@@ -54,16 +54,20 @@ export class EnrollmentsService {
 
     if (totalLessons === 0) return { enrolled: true, progress: 0 };
 
-    const completedProgress = await this.prisma.progress.count({
+    const completedProgress = await this.prisma.progress.findMany({
       where: {
         userId,
         lesson: { courseId },
         status: 'COMPLETED',
       },
+      select: {
+        lessonId: true,
+      },
     });
 
-    const progress = Math.round((completedProgress / totalLessons) * 100);
-    return { enrolled: true, progress };
+    const progress = Math.round((completedProgress.length / totalLessons) * 100);
+    const completedLessonIds = completedProgress.map((p) => p.lessonId);
+    return { enrolled: true, progress, completedLessonIds };
   }
 
   async getEnrolledUsersByCourse(courseId: string) {

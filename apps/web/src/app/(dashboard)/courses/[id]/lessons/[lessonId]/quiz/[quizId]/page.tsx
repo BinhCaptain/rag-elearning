@@ -110,6 +110,7 @@ export default function QuizPage() {
         
         const result = await res.json();
         toast.success(`Nộp bài thành công! Bạn đạt ${result.score}/${result.totalQuestions}`);
+        router.refresh();
       } catch (err) {
         console.error("Lỗi nộp bài trắc nghiệm", err);
         toast.error("Không thể ghi lại kết quả bài tập. Vui lòng thử lại.");

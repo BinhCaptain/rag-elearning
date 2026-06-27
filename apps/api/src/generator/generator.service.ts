@@ -26,10 +26,13 @@ export class GeneratorService {
     this.logger.log(`Loaded ${this.geminiKeys.length} Gemini API key(s) for rotation`);
   }
 
-  /** Mock exam JSON dùng khi AI_MOCK_MODE=true (để test khi API keys bị rate-limit) */
-  private getMockExamData(filename: string): string {
+  /** Mock exam JSON dùng khi AI_MOCK_MODE=true hoặc khi tất cả API keys bị rate-limit */
+  private getMockExamData(filename: string, isFallback = false): string {
+    const prefix = isFallback ? '[Rate-limited] ' : '[MOCK] ';
     const mock = {
-      title: `[MOCK] Đề Kiểm Tra Tiếng Anh - ${filename}`,
+      title: `${prefix}Đề Kiểm Tra Tiếng Anh - ${filename}`,
+      _isMock: true,
+      _reason: isFallback ? 'rate_limited' : 'mock_mode',
       questions: [
         {
           content: "The manager suggested that the team ___ the project deadline by two weeks.",
@@ -87,23 +90,30 @@ export class GeneratorService {
   }
 
   /** Gọi Gemini REST API trực tiếp (không qua OpenAI proxy) với key rotation */
-  private async callGeminiDirect(prompt: string): Promise<string> {
+  private async callGeminiDirect(prompt: string): Promise<{ text: string; isFallback: boolean }> {
     // Mock mode: bỏ qua gọi API thật, trả về dữ liệu mẫu
     const mockMode = this.configService.get<string>('AI_MOCK_MODE') === 'true';
     if (mockMode) {
       this.logger.warn('⚠️  AI_MOCK_MODE=true — trả về đề thi mẫu (mock) cho testing');
       await new Promise(r => setTimeout(r, 1500)); // giả lập latency
-      return this.getMockExamData('sample');
+      return { text: this.getMockExamData('sample'), isFallback: false };
+    }
+
+    if (this.geminiKeys.length === 0) {
+      this.logger.warn('⚠️  Không có Gemini API key — fallback về mock data');
+      await new Promise(r => setTimeout(r, 1000));
+      return { text: this.getMockExamData('no-key', true), isFallback: true };
     }
 
     const totalKeys = this.geminiKeys.length;
     let lastError: any;
+    let allRateLimited = true;
 
     for (let attempt = 0; attempt < totalKeys; attempt++) {
       const keyIdx = (this.currentKeyIndex + attempt) % totalKeys;
       const apiKey = this.geminiKeys[keyIdx];
       // Thử các model theo thứ tự ưu tiên
-      const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest'];
+      const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest'];
 
       for (const model of models) {
         try {
@@ -128,6 +138,8 @@ export class GeneratorService {
             lastError = new Error(`HTTP ${response.status}: ${errText.substring(0, 100)}`);
             // 429 hoặc 503 → thử key kế, không thử model kế
             if (response.status === 429 || response.status === 503) break;
+            // Lỗi khác (400/404) không phải rate limit
+            allRateLimited = false;
             continue; // 400/404 → thử model kế
           }
 
@@ -137,13 +149,19 @@ export class GeneratorService {
 
           this.currentKeyIndex = keyIdx;
           this.logger.log(`Success with key #${keyIdx + 1}, model: ${model}`);
-          return text;
+          return { text, isFallback: false };
 
         } catch (err: any) {
           this.logger.warn(`Key #${keyIdx + 1}, model ${model}: ${err.message}`);
           lastError = err;
         }
       }
+    }
+
+    // Nếu tất cả keys đều bị rate limit → fallback về mock thay vì throw lỗi
+    if (allRateLimited) {
+      this.logger.warn('⚠️  Tất cả Gemini API keys đều bị rate limit (429) — fallback về mock data');
+      return { text: this.getMockExamData('rate-limited', true), isFallback: true };
     }
 
     throw lastError || new Error('Tất cả Gemini API keys/models đều thất bại');
@@ -169,7 +187,7 @@ Yêu cầu:
 CHỈ TRẢ VỀ JSON THUẦN TÚY (không có markdown, không có text ngoài JSON):
 {"title":"Tên đề thi","questions":[{"content":"Câu hỏi","explanation":"Giải thích","options":[{"content":"Đáp án A","isCorrect":false},{"content":"Đáp án B","isCorrect":true},{"content":"Đáp án C","isCorrect":false},{"content":"Đáp án D","isCorrect":false}]}]}`;
 
-      const responseText = await this.callGeminiDirect(prompt);
+      const { text: responseText, isFallback } = await this.callGeminiDirect(prompt);
 
       let examData;
       try {
@@ -188,7 +206,9 @@ CHỈ TRẢ VỀ JSON THUẦN TÚY (không có markdown, không có text ngoài 
       }
 
       this.logger.log(`Generated ${examData.questions.length} questions for: ${examData.title}`);
-      return examData;
+      
+      // Trả về cùng examData nhưng kèm flag isFallback để frontend biết
+      return { ...examData, _isFallback: isFallback };
 
     } catch (err: any) {
       this.logger.error('Error generating draft:', err.message);

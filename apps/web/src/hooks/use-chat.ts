@@ -13,6 +13,16 @@ export interface ChatMessage {
   content: string;
   sources?: ChatSource[];
   isLoading?: boolean;
+  timings?: {
+    sessionSetupMs: number;
+    dbSaveUserMsgMs: number;
+    dbRetrieveHistoryMs: number;
+    embeddingMs: number;
+    vectorSearchMs: number;
+    llmCallMs: number;
+    dbSaveReplyMs: number;
+    totalMs: number;
+  };
 }
 
 const WELCOME_MSG: ChatMessage = {
@@ -93,6 +103,7 @@ export function useChat(lessonId?: string) {
           role: "assistant",
           content: res.reply,
           sources: res.sources,
+          timings: res.timings,
         };
 
         setMessages((prev) =>

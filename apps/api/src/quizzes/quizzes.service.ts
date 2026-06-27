@@ -73,6 +73,23 @@ export class QuizzesService {
       }
     });
 
+    // Tự động đánh dấu hoàn thành bài học khi làm xong Quiz
+    await this.prisma.progress.upsert({
+      where: {
+        userId_lessonId: { userId, lessonId: quiz.lessonId }
+      },
+      create: {
+        userId,
+        lessonId: quiz.lessonId,
+        status: 'COMPLETED',
+        completedAt: new Date(),
+      },
+      update: {
+        status: 'COMPLETED',
+        completedAt: new Date(),
+      }
+    });
+
     return this.prisma.quizAttempt.create({
       data: {
         userId,

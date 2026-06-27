@@ -54,6 +54,21 @@ async function getCourse(id: string): Promise<Course | null> {
   return res.json();
 }
 
+async function getEnrollmentStatus(courseId: string, token?: string): Promise<{ enrolled: boolean; progress: number; completedLessonIds: string[] }> {
+  if (!token) return { enrolled: false, progress: 0, completedLessonIds: [] };
+  try {
+    const res = await fetch(`http://localhost:3001/api/v1/enrollments/check/${courseId}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return { enrolled: false, progress: 0, completedLessonIds: [] };
+    const data = await res.json();
+    return data;
+  } catch {
+    return { enrolled: false, progress: 0, completedLessonIds: [] };
+  }
+}
+
 export default async function LessonPage({ params }: { params: { id: string; lessonId: string } }) {
   const { id, lessonId } = await params;
   const cookieStore = await cookies();
@@ -62,6 +77,7 @@ export default async function LessonPage({ params }: { params: { id: string; les
   const lesson = await getLesson(lessonId, token);
   const course = await getCourse(id);
   const user = await getUser();
+  const enrollmentStatus = await getEnrollmentStatus(id, token);
 
   if (!lesson || !course) {
     notFound();
@@ -72,6 +88,8 @@ export default async function LessonPage({ params }: { params: { id: string; les
   }
 
   const quizId = lesson.quizzes[0]?.id;
+  const progressPercent = enrollmentStatus.progress;
+  const completedLessonIds = enrollmentStatus.completedLessonIds || [];
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 animate-fade-in-up">
@@ -90,8 +108,8 @@ export default async function LessonPage({ params }: { params: { id: string; les
         
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 text-sm text-slate-600 font-medium">
-            <Progress value={33} className="w-24 h-2" />
-            <span>33%</span>
+            <Progress value={progressPercent} className="w-24 h-2" />
+            <span>{progressPercent}%</span>
           </div>
           <Button variant="outline" size="sm" className="hidden sm:flex gap-2 text-primary border-primary/20 hover:bg-primary/5 rounded-full font-bold">
             <BrainCircuit className="h-4 w-4" />
@@ -99,7 +117,7 @@ export default async function LessonPage({ params }: { params: { id: string; les
           </Button>
         </div>
       </header>
-
+  
       <div className="flex-1 flex overflow-hidden">
         {/* Persistent Syllabus Sidebar */}
         <aside className="hidden lg:flex w-72 shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -110,26 +128,33 @@ export default async function LessonPage({ params }: { params: { id: string; les
             </h3>
           </div>
           <div className="flex-1 overflow-auto py-2">
-            {course.lessons.sort((a,b) => a.order - b.order).map((l) => (
-              <Link 
-                key={l.id} 
-                href={`/courses/${id}/lessons/${l.id}`}
-                className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
-                  l.id === lessonId 
-                    ? "bg-primary/5 text-primary font-bold border-r-2 border-primary" 
-                    : "text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                <div className="flex-shrink-0 w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center text-[10px] font-bold">
-                  {l.order}
-                </div>
-                <span className="flex-1 truncate">{l.title}</span>
-                {l.quizzes.length > 0 && <BrainCircuit className="h-3 w-3 text-amber-500" />}
-              </Link>
-            ))}
+            {course.lessons.sort((a,b) => a.order - b.order).map((l) => {
+              const isCompleted = completedLessonIds.includes(l.id);
+              return (
+                <Link 
+                  key={l.id} 
+                  href={`/courses/${id}/lessons/${l.id}`}
+                  className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors ${
+                    l.id === lessonId 
+                      ? "bg-primary/5 text-primary font-bold border-r-2 border-primary" 
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className={`flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold ${
+                    isCompleted 
+                      ? "bg-emerald-100 text-emerald-700" 
+                      : "bg-slate-100 text-slate-500"
+                  }`}>
+                    {isCompleted ? <CheckCircle2 className="h-3.5 w-3.5" /> : l.order}
+                  </div>
+                  <span className="flex-1 truncate text-left">{l.title}</span>
+                  {!isCompleted && l.quizzes.length > 0 && <BrainCircuit className="h-3 w-3 text-amber-500 shrink-0" />}
+                </Link>
+              );
+            })}
           </div>
         </aside>
-
+  
         <div className="flex-1 overflow-auto bg-slate-50">
           <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row min-h-full">
             {/* Main Content Area */}
@@ -141,7 +166,7 @@ export default async function LessonPage({ params }: { params: { id: string; les
                     <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-wider text-[10px]">
                       Bài học {lesson.order}
                     </Badge>
-                    <LessonActions lessonId={lesson.id} initialCompleted={lesson.isCompleted} />
+                    <LessonActions key={lesson.id} lessonId={lesson.id} initialCompleted={lesson.isCompleted} />
                   </div>
                   <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                     {lesson.title}
@@ -151,13 +176,22 @@ export default async function LessonPage({ params }: { params: { id: string; les
                 {/* Video Player */}
                 {lesson.videoUrl ? (
                   <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video shadow-2xl">
-                    <iframe
-                      src={getEmbedUrl(lesson.videoUrl)}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={lesson.title}
-                    />
+                    {lesson.videoUrl.includes('/uploads/') || lesson.videoUrl.endsWith('.mp4') || lesson.videoUrl.endsWith('.webm') ? (
+                      <video
+                        src={lesson.videoUrl}
+                        className="w-full h-full"
+                        controls
+                        title={lesson.title}
+                      />
+                    ) : (
+                      <iframe
+                        src={getEmbedUrl(lesson.videoUrl)}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={lesson.title}
+                      />
+                    )}
                   </div>
                 ) : (
                   <div className="rounded-2xl overflow-hidden bg-slate-900 aspect-video relative flex items-center justify-center group shadow-2xl">
