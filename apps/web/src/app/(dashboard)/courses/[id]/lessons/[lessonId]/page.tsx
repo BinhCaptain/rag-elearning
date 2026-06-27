@@ -8,7 +8,6 @@ import { notFound } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import AdminLessonDetailPage from "./admin-lesson-detail";
 import { LessonActions } from "./lesson-actions";
-import { AIAssistant } from "./ai-assistant";
 import { cookies } from "next/headers";
 
 interface Lesson {
@@ -252,9 +251,6 @@ export default async function LessonPage({ params }: { params: { id: string; les
                 </div>
               </div>
             </div>
-
-            {/* AI Sidebar */}
-            <AIAssistant />
           </div>
         </div>
       </div>
