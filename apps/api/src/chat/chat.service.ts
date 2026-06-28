@@ -309,9 +309,7 @@ export class ChatService {
       } catch (err: any) {
         this.logger.warn(`Embedding failed with key #${keyIdx + 1}: ${err.message}`);
         lastError = err;
-        if (err.status === 429 || err.status === 503) {
-          continue;
-        }
+        continue;
       }
     }
     throw lastError || new Error('Tất cả API keys để tạo embedding đều thất bại');
@@ -395,9 +393,7 @@ Hãy ưu tiên dùng thông tin từ tài liệu trên để trả lời câu h�
       } catch (err: any) {
         this.logger.warn(`Key #${keyIdx + 1} failed: ${err.message}`);
         lastError = err;
-        if (err.status === 429 || err.status === 503) {
-          continue;
-        }
+        continue;
       }
     }
     throw lastError || new Error('Tất cả API keys để sinh câu trả lời đều thất bại');
