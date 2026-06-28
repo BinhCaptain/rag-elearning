@@ -28,7 +28,7 @@ export default function IngestionPage() {
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error("Vui lòng chọn một file PDF.");
+      toast.error("Vui lòng chọn một file tài liệu hợp lệ.");
       return;
     }
 
@@ -100,22 +100,22 @@ export default function IngestionPage() {
             <CardTitle className="flex items-center gap-2 text-primary">
               <Upload className="h-5 w-5" /> Tải lên tài liệu mới
             </CardTitle>
-            <CardDescription>Hỗ trợ định dạng file PDF để phân giải và nạp vào Vector Database.</CardDescription>
+            <CardDescription>Hỗ trợ định dạng file PDF, DOCX, DOC, TXT, MD để phân giải và nạp vào Vector Database.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
              <div className="grid w-full items-center gap-1.5">
-              <label htmlFor="file-upload" className="text-sm font-medium text-slate-700">Tệp PDF định dạng chuẩn</label>
-              <Input id="file-upload" type="file" accept="application/pdf" onChange={handleFileChange} disabled={isUploading} className="cursor-pointer file:cursor-pointer" />
+              <label htmlFor="file-upload" className="text-sm font-medium text-slate-700">Tệp tài liệu (PDF, Word, Txt, Markdown)</label>
+              <Input id="file-upload" type="file" accept=".pdf,.docx,.doc,.txt,.md" onChange={handleFileChange} disabled={isUploading} className="cursor-pointer file:cursor-pointer" />
              </div>
              
              <div className="grid grid-cols-2 gap-4">
                <div className="grid w-full items-center gap-1.5">
                   <label htmlFor="topic" className="text-sm font-medium text-slate-700">Chủ đề (Topic)</label>
-                  <Input id="topic" placeholder="vd: Thì hiện tại đơn" value={topic} onChange={(e) => setTopic(e.target.value)} disabled={isUploading} />
+                  <Input id="topic" placeholder="vd: Từ vựng y dược" value={topic} onChange={(e) => setTopic(e.target.value)} disabled={isUploading} />
                </div>
                <div className="grid w-full items-center gap-1.5">
                   <label htmlFor="level" className="text-sm font-medium text-slate-700">Cấp độ (Level)</label>
-                  <Input id="level" placeholder="vd: Cơ bản, Nâng cao" value={level} onChange={(e) => setLevel(e.target.value)} disabled={isUploading} />
+                  <Input id="level" placeholder="vd: Nâng cao, Chuyên ngành" value={level} onChange={(e) => setLevel(e.target.value)} disabled={isUploading} />
                </div>
              </div>
           </CardContent>

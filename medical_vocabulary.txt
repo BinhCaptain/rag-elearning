@@ -1,0 +1,61 @@
+MEDICAL VOCABULARY - CHUYÊN NGÀNH Y DƯỢC
+
+1. Pharmacokinetics (Dược động học)
+- Phát âm: /ˌfɑːrməkəʊkɪˈnetɪks/
+- Định nghĩa tiếng Anh: The branch of pharmacology concerned with the movement of drugs within the body (including absorption, distribution, metabolism, and excretion).
+- Định nghĩa tiếng Việt: Nhánh dược lý học nghiên cứu về sự di chuyển của thuốc trong cơ thể (bao gồm các quá trình hấp thụ, phân bố, chuyển hóa và thải trừ).
+- Ví dụ: Understanding the pharmacokinetics of a drug is crucial to determining the correct dosage. (Hiểu về dược động học của thuốc là tối quan trọng để xác định liều lượng chính xác).
+
+2. Otorhinolaryngologist (Bác sĩ Tai Mũi Họng)
+- Phát âm: /ˌoʊtoʊˌraɪnoʊˌlærəŋˈɡɑːlədʒɪst/
+- Định nghĩa tiếng Anh: A physician who specializes in the diagnosis and treatment of ear, nose, and throat disorders.
+- Định nghĩa tiếng Việt: Bác sĩ chuyên khoa chuyên chẩn đoán và điều trị các bệnh liên quan đến tai, mũi và họng.
+- Ví dụ: The otorhinolaryngologist diagnosed him with chronic sinusitis. (Bác sĩ tai mũi họng chẩn đoán anh ấy bị viêm xoang mãn tính).
+
+3. Anesthesiologist (Bác sĩ gây mê)
+- Phát âm: /ˌænəsˌθiːziˈɑːlədʒɪst/
+- Định nghĩa tiếng Anh: A physician who specializes in administering anesthetics and monitoring patients during surgery.
+- Định nghĩa tiếng Việt: Bác sĩ chuyên khoa phụ trách việc gây mê, gây tê và theo dõi các chỉ số sinh tồn của bệnh nhân trong suốt ca phẫu thuật.
+- Ví dụ: The anesthesiologist monitored the patient's heart rate throughout the entire operation. (Bác sĩ gây mê đã theo dõi nhịp tim của bệnh nhân trong suốt ca phẫu thuật).
+
+4. Electrocardiogram (Điện tâm đồ - ECG/EKG)
+- Phát âm: /ɪˈlektroʊˈkɑːrdiəɡræm/
+- Định nghĩa tiếng Anh: A record of the electrical activity of the heart, used to detect cardiac abnormalities.
+- Định nghĩa tiếng Việt: Bản ghi chép các thay đổi của dòng điện trong tim, dùng để chẩn đoán các bệnh lý và bất thường về tim mạch.
+- Ví dụ: The doctor ordered an electrocardiogram to check for irregular heartbeats. (Bác sĩ yêu cầu làm điện tâm đồ để kiểm tra tình trạng nhịp tim không đều).
+
+5. Pathophysiology (Bệnh sinh lý học)
+- Phát âm: /ˌpæθoʊˌfɪziˈɑːlədʒi/
+- Định nghĩa tiếng Anh: The study of the disordered physiological processes associated with disease or injury.
+- Định nghĩa tiếng Việt: Môn học hoặc ngành nghiên cứu sự thay đổi chức năng sinh lý của cơ thể đi kèm với bệnh tật hoặc chấn thương.
+- Ví dụ: We studied the pathophysiology of diabetes in our medical lecture today. (Chúng tôi đã học về bệnh sinh lý học của bệnh tiểu đường trong bài giảng y khoa hôm nay).
+
+6. Cardiomyopathy (Bệnh cơ tim)
+- Phát âm: /ˌkɑːrdioʊmaɪˈɑːpəθi/
+- Định nghĩa tiếng Anh: A chronic disease of the heart muscle wherein it becomes abnormally enlarged, thickened, or stiff, reducing its ability to pump blood.
+- Định nghĩa tiếng Việt: Bệnh lý mãn tính của cơ tim làm cho cơ tim bị giãn nở, dày lên hoặc xơ cứng bất thường, dẫn đến giảm khả năng bơm máu đi nuôi cơ thể.
+- Ví dụ: Hypertrophic cardiomyopathy is a genetic condition that affects the heart walls. (Bệnh cơ tim phì đại là một tình trạng di truyền ảnh hưởng đến thành tim).
+
+7. Hemostasis (Sự cầm máu / Quá trình đông máu)
+- Phát âm: /ˌhiːməˈsteɪsɪs/
+- Định nghĩa tiếng Anh: The stopping of a flow of blood, either by natural clotting or by surgical/pharmacological means.
+- Định nghĩa tiếng Việt: Quá trình ngăn chặn dòng chảy của máu thoát ra ngoài thành mạch, thông qua cơ chế đông máu tự nhiên hoặc các biện pháp ngoại khoa/dược lý.
+- Ví dụ: Vitamin K plays a vital role in achieving effective hemostasis. (Vitamin K đóng vai trò quan trọng trong việc đạt được sự cầm máu hiệu quả).
+
+8. Encephalopathy (Bệnh não)
+- Phát âm: /enˌsefəˈlɑːpəθi/
+- Định nghĩa tiếng Anh: Any broad disease, damage, or malfunction of the brain, often causing altered mental state.
+- Định nghĩa tiếng Việt: Bất kỳ bệnh lý, tổn thương hoặc sự suy giảm chức năng nào của não bộ trên diện rộng, thường gây ra sự thay đổi về trạng thái tâm thần.
+- Ví dụ: Hepatic encephalopathy is a brain disorder caused by severe liver disease. (Bệnh não gan là một rối loạn não gây ra bởi bệnh gan nghiêm trọng).
+
+9. Gastroenterologist (Bác sĩ Tiêu hóa)
+- Phát âm: /ˌɡæstroʊˌentəˈrɑːlədʒɪst/
+- Định nghĩa tiếng Anh: A medical practitioner specializing in the diagnosis and treatment of disorders of the stomach and intestines.
+- Định nghĩa tiếng Việt: Bác sĩ chuyên khoa tiêu hóa, chuyên chẩn đoán và điều trị bệnh của dạ dày, ruột và các cơ quan tiêu hóa phụ trợ.
+- Ví dụ: You should consult a gastroenterologist if you suffer from persistent acid reflux. (Bạn nên đi khám bác sĩ tiêu hóa nếu bị chứng trào ngược axit dai dẳng).
+
+10. Nephrotoxicity (Độc tính trên thận)
+- Phát âm: /ˌnefroʊtɑːkˈsɪsəti/
+- Định nghĩa tiếng Anh: Toxicity in the kidneys, representing rapid or slow deterioration in kidney function due to toxic chemicals or medications.
+- Định nghĩa tiếng Việt: Độc tính hoặc tác dụng độc hại lên thận, biểu hiện bằng sự suy giảm nhanh hoặc chậm chức năng thận do hóa chất hoặc thuốc gây ra.
+- Ví dụ: Some heavy antibiotics carry a significant risk of nephrotoxicity. (Một số loại kháng sinh mạnh có nguy cơ gây độc tính trên thận rất cao).
