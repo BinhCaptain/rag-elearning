@@ -114,6 +114,40 @@ export class IngestionService implements OnModuleInit {
       .exec();
   }
 
+  async deleteDocument(docId: string, uploadedBy: string) {
+    const doc = await this.docModel.findOne({ _id: docId, uploaded_by: uploadedBy });
+    if (!doc) {
+      throw new Error('Không tìm thấy tài liệu hoặc bạn không có quyền xóa');
+    }
+
+    // 1. Delete matching vectors from Qdrant
+    const qdrantUrl = this.configService.get<string>('QDRANT_URL', 'http://localhost:6333');
+    try {
+      const qdrantDeleteUrl = `${qdrantUrl}/collections/${this.collectionName}/points/delete`;
+      await fetch(qdrantDeleteUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filter: {
+            must: [
+              {
+                key: 'document_id',
+                match: { value: docId }
+              }
+            ]
+          }
+        })
+      });
+      this.logger.log(`Deleted vectors for document ${docId} from Qdrant`);
+    } catch (err) {
+      this.logger.error(`Failed to delete vectors for document ${docId} from Qdrant: ${err.message}`);
+    }
+
+    // 2. Delete from MongoDB
+    await this.docModel.deleteOne({ _id: docId });
+    return { success: true, message: 'Đã xóa tài liệu và vector RAG tương ứng' };
+  }
+
   // ─── Processing Pipeline ──────────────────────────────────────────────────────
 
   private async processDocument(

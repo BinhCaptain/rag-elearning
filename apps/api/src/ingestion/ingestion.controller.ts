@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
+  Param,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -68,6 +70,16 @@ export class IngestionController {
    */
   @Get()
   async getDocuments(@Request() req: any) {
-    return this.ingestionService.getDocuments(req.user.userId);
+    return this.ingestionService.getDocuments(req.user.userId || req.user.sub || req.user.id || 'admin-system');
+  }
+
+  /**
+   * DELETE /api/v1/ingestion/:id
+   * Xóa tài liệu và vector RAG tương ứng
+   */
+  @Delete(':id')
+  async deleteDocument(@Param('id') id: string, @Request() req: any) {
+    const userId = req.user.userId || req.user.sub || req.user.id || 'admin-system';
+    return this.ingestionService.deleteDocument(id, userId);
   }
 }
